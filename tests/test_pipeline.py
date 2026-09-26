@@ -37,16 +37,38 @@ def test_split_endpoints(title, description, expected):
     assert json.loads(split_endpoints(title, description)["segments"]) == expected
 
 
+BASELINE_PDF = Path(__file__).parent.parent / "data" / "raw" / "2024-2028-2million-and-above-project-descriptions.pdf"
+
+
+def merged():
+    from pipeline.common import pdf_text
+    if not BASELINE_PDF.exists():
+        pytest.skip("put the 2024-2028 DESC PDF in data/raw/ to run the edition-merge tests")
+    base = parse_text(pdf_text(str(BASELINE_PDF)))
+    return merge_editions(base, [parse_text((FIXTURES / "desc_2026_2030_excerpt.txt").read_text())])
+
+
 def test_updated_dates_are_added_not_overwritten():
-    base = parse_text((FIXTURES / "desc_2026_2030_excerpt.txt").read_text().replace("2026 2027 2028 2029 2030", "2024 2025 2026 2027 2028"))
-    base = base[base.project_id != "6888"]
-    upd = parse_text((FIXTURES / "desc_2026_2030_excerpt.txt").read_text())
-    m = merge_editions(base, [upd])
+    m, _ = merged()
     jasper = m[m.project_id == "06367 D - G"].iloc[0]
-    assert jasper.in_service_raw == "12/01/2026" and jasper.in_service_raw_updated == "12/01/2026"
+    assert jasper.in_service_raw == "12/31/25" and jasper.in_service_raw_updated == "12/01/2026"
     new = m[m.project_id == "6888"].iloc[0]           # Okatie - McIntosh, only in the newer edition
     assert bool(new.new_in_update) and new.in_service_raw_updated == "12/31/2028"
-    assert len(m) == len(base) + 1
+
+
+def test_reused_ids_do_not_overwrite_other_projects():
+    m, report = merged()
+    hooks = m[m.project_id == "6809 G"].iloc[0]       # Stevens Creek - Hooks in 2024-2028
+    assert "Stevens Creek" in hooks["name"] and hooks.in_service_raw_updated is None
+    assert (m.name.str.startswith("Hooks - Modoc")).sum() == 1        # added as its own project
+    assert (m.name.str.startswith("Modoc – McCormick")).sum() == 1
+    assert m.project_id.is_unique
+
+
+def test_changed_ids_match_by_name():
+    m, report = merged()
+    riverport = m[m.name.str.startswith("Riverport")]
+    assert len(riverport) == 1 and riverport.iloc[0].project_id_updated == "6367 D"
 
 
 def test_answer_key_checker_passes_correct_key(tmp_path):

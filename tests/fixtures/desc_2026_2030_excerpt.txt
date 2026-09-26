@@ -70,3 +70,75 @@ Planned In-Service Date
 Estimated Project Cost
 Previous 2026 2027 2028 2029 2030 Total
 $0 $0 $50,000 $5,326,418 $0 $0 $5,376,418
+Project 13 of 54
+Dominion Energy South Carolina
+Planned Transmission Projects $2M and above Total
+5 Year Budget
+Riverport 115kV Tap: Construct Tap
+Project ID
+6367 D
+Project Description
+Constructing a 230 kV Tap from Okatie to Riverport
+Project Need
+Reliability/Contingency Transmission Line Design
+Project Status
+In Progress
+Planned In-Service Date
+12/01/26
+Estimated Project Cost
+Previous 2026 2027 2028 2029 2030 Total
+$14,773,047 $26,616,000 $0 $0 $0 $0 $41,389,047
+Project 19 of 54
+Dominion Energy South Carolina
+Planned Transmission Projects $2M and above Total
+5 Year Budget
+St George - Sumter 230kV Tie: Rebuild Line from Santee Substation - Duke/Progress Energy Tie
+Project ID
+6809 M
+Project Description
+Rebuild Line from Santee Substation - Duke/Progress Energy Tie.
+Project Need
+Grid hardening.
+Project Status
+Planned
+Planned In-Service Date
+12/31/2027
+Estimated Project Cost
+Previous 2026 2027 2028 2029 2030 Total
+$219,331 $50,000 $4,300,000 0 $0 $0 $4,569,331
+Project 20 of 54
+Dominion Energy South Carolina
+Planned Transmission Projects $2M and above Total
+5 Year Budget
+Hooks - Modoc 115/46 kV Rebuild
+Project ID
+6809 G
+Project Description
+Upgrade 6.5 miles of aging conductor with 1272 ACSR and rebuild with SPDC.
+Project Need
+This project is required to address end of life and reliability issues on these lines.
+Project Status
+Planned
+Planned In-Service Date
+12/31/27
+Estimated Project Cost
+Previous 2026 2027 2028 2029 2030 Total
+$234,285 $100,000 $10,200,000 $0 $0 $0 $10,534,285
+Project 48 of 54
+Dominion Energy South Carolina
+Planned Transmission Projects $2M and above Total
+5 Year Budget
+Modoc – McCormick 115/46 kV Rebuild
+Project ID
+6809 M
+Project Description
+Rebuilding the section of 115/46kV line between Modoc and McCormick. Lines will be SPDC with 115 kV insulation on both sides.
+Project Need
+System Hardening
+Project Status
+Planned
+Planned In-Service Date
+12/31/29
+Estimated Project Cost
+Previous 2026 2027 2028 2029 2030 Total
+$0 $275,000 $125,000 $7,600,000 $11,800,000 $0 $19,800,000
