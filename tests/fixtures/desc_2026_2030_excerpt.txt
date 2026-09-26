@@ -1,0 +1,72 @@
+Project 7 of 54
+Dominion Energy South Carolina
+Planned Transmission Projects $2M and above Total
+5 Year Budget
+Urquhart – Toolebeck 115kV line: Rebuild
+Project ID
+6852
+Project Description
+Upgrade the 477 ACSR portions of the Urquhart – Toolebeck 115 kV line to 1272 ACSR. Replace existing structures with Single Pole Double Circuit Structures. Approximately 12.5 miles.
+Project Need
+This project is needed to improve system performance and to meet NERC TPL and internal DESC Planning Criteria for reliability.
+Project Status
+In Progress
+Planned In-Service Date
+8/12/2026
+Estimated Project Cost
+Previous 2026 2027 2028 2029 2030 Total
+$8,245,538 $7,703,082 $0 $0 $0 $0 $15,948,620
+Project 11 of 54
+Dominion Energy South Carolina
+Planned Transmission Projects $2M and above Total
+5 Year Budget
+Okatie 230-115kV Substation, Jasper – Yemassee 230kV #1 Fold-in
+Project ID
+0139 M,N
+Project Description
+Expand existing Okatie Transmission sub, add a 230-115 autobank and fold the Jasper – Yemassee 230 kV #1 line into the 230 kV side. Construct two additional 115 kV bus tie lines.
+Project Need
+This project is needed to improve system performance and to meet NERC TPL and internal DESC Planning Criteria for reliability.
+Project Status
+In Progress
+Planned In-Service Date
+12/31/2026
+Estimated Project Cost
+Previous 2026 2027 2028 2029 2030 Total
+$7,204,010 $3,401,335 $1,024,912 $0 $0 $0 $11,630,257
+Project 12 of 54
+Dominion Energy South Carolina
+Planned Transmission Projects $2M and above Total
+5 Year Budget
+Jasper – Okatie 230 kV #2: Construct
+Project ID
+06367 D - G
+Project Description
+Construct a 230 kV line with B1272 ACSR from Jasper to Okatie 230/115kV Substation. The line is estimated to be 6.5 miles long.
+Project Need
+This project is needed to improve system performance and to meet NERC TPL and internal DESC Planning Criteria for reliability.
+Project Status
+In Progress
+Planned In-Service Date
+12/01/2026
+Estimated Project Cost
+Previous 2026 2027 2028 2029 2030 Total
+$14,303648 $4,976,826 $0 $0 $0 $0 $19,280,474
+Project 41 of 54
+Dominion Energy South Carolina
+Planned Transmission Projects $2M and above Total
+5 Year Budget
+Okatie – McIntosh 115kV Tie: Add Series Reactor
+Project ID
+6888
+Project Description
+Construct Deerfield Switching Station and Install a 9% series reactor on the Okatie – McIntosh 115kV Tie Line.
+Project Need
+This project is needed to improve system performance and to meet NERC TPL and internal DESC Planning Criteria for reliability.
+Project Status
+Planned
+Planned In-Service Date
+12/31/2028
+Estimated Project Cost
+Previous 2026 2027 2028 2029 2030 Total
+$0 $0 $50,000 $5,326,418 $0 $0 $5,376,418

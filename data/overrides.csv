@@ -1,0 +1,4 @@
+utility,project_id,endpoint_a,endpoint_b,lat_a,lon_a,lat_b,lon_b,confidence,note
+GPC,19523,Hyundai,Meldrim,,,,,low,"'CC' is not a place. Description: new Hyundai sub + Hyundai-Newton Rd and Hyundai-Meldrim 230kV lines. Hyundai sub is new and not in OSM: enter its site coordinates in lat_a/lon_a."
+GPC,19966,Little Ogeechee,,,,,,low,"New Big Ogeechee 500/230kV sub 'near Little Ogeechee' is not in OSM yet; Little Ogeechee used as a proxy location."
+GPC,21116,Goshen,,,,,,low,"New switching station on Waynesboro-Wilson 230kV + 12.3 mi line to Goshen (Augusta side, not Goshen (SAV)); station location unknown, Goshen used."

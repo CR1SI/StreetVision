@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    # postgis/postgis publishes amd64 images only. On Apple Silicon, Docker Desktop runs this
+    # under emulation (slower, works). If it won't start, use Postgres.app instead (bundles
+    # PostGIS, no Docker) with the same database name, user, and password as below.
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: gridlock
+      POSTGRES_USER: gridlock
+      POSTGRES_PASSWORD: gridlock
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gridlock -d gridlock"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  pgdata:
