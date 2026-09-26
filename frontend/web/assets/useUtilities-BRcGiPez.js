@@ -1,0 +1,1 @@
+import{u as r,a as u,r as e,D as n}from"./format-lG_MT4hf.js";function c(){const i=r(t=>u.utilities({signal:t}),[]),s=e.useMemo(()=>i.data??[],[i.data]),o=e.useMemo(()=>n(s.map(t=>t.utility_id)),[s]),a=e.useMemo(()=>Object.fromEntries(s.map(t=>[t.utility_id,t.name||t.utility_id])),[s]);return{...i,list:s,colors:o,names:a}}export{c as u};
