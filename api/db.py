@@ -1,7 +1,6 @@
-"""SQLAlchemy engine. Override the connection with the DATABASE_URL environment variable."""
-import os
-
+"""SQLAlchemy engine. The connection comes from api/config.py (DATABASE_URL / POSTGRES_PASSWORD)."""
 from sqlalchemy import create_engine
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://gridlock:gridlock@localhost:5433/gridlock")
+from api.config import DATABASE_URL
+
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
