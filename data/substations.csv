@@ -6,21 +6,21 @@ DESC,SC,Thurmond,yes,33.6601273,-82.1959307,high,yes,Thurmond Substation,way/521
 DESC,SC,Toolebeck,yes,33.5346321,-81.6693272,high,yes,Toolebeck Substation,way/1073259467,,1.0,33.5346321,-81.6693272,OSM Overpass
 DESC,SC,Urquhart,yes,33.4333777,-81.909209,high,yes,Urquhart Station,way/449466234,"Dominion Energy South Carolina, Inc",1.05,33.4333777,-81.909209,OSM Overpass
 DESC,SC,Yemassee,yes,32.6974259,-80.8637929,high,yes,Yemassee Substation,way/185317032,South Carolina Electric & Gas Company,1.05,32.6974259,-80.8637929,OSM Overpass
-DESC,SC,Aiken Psa,yes,,,low,no,Saint Pauls Substation,way/1103598951,Lumbee River EMC,0.6,34.8060778,-78.9459204,OSM Overpass
-DESC,SC,Hooks,yes,,,low,no,Hagood Power Plant,way/487070945,"Dominion Energy South Carolina, Inc",0.595,32.8272548,-79.9621408,OSM Overpass
-DESC,SC,Okatie,yes,,,low,no,Oakdale Substation,way/1027488587,Georgia Power,0.615,32.0114259,-81.0966287,OSM Overpass
+DESC,SC,Okatie,yes,32.277554,-80.968648,low,guess,Oakdale Substation,way/1027488587,Georgia Power,0.615,32.0114259,-81.0966287,OSM unnamed SCE&G 115 kV near Okatie; best location match
 DESC,SC,Riverport,yes,,,low,no,Airport Substation,way/1077699987,,0.75,33.9526182,-81.1052395,OSM Overpass
+DESC,SC,Aiken Psa,yes,33.473195,-81.912753,medium,guess,Saint Pauls Substation,way/1103598951,Lumbee River EMC,0.6,34.8060778,-78.9459204,OSM 'Beech Island Wastewater Substation' 46 kV; PSA = Aiken County Public Service Authority?
+DESC,SC,Hooks,yes,33.656820,-82.159478,medium,guess,Hagood Power Plant,way/487070945,"Dominion Energy South Carolina, Inc",0.595,32.8272548,-79.9621408,"OSM 'GPC <-> SCG&E Compensator Station', 3.4 km from Thurmond (Hooks-Thurmond tie is 2.3 mi)"
 DESC,SC,Mcintosh,yes,32.352116,-81.175112,medium,manual,Plant McIntosh,way/163526649,Georgia Power,1.0,32.3568186,-81.1703463,OSM Overpass
 GPC,215,Evans Primary,yes,33.5439942,-82.1686481,high,yes,Evans Primary Substation,way/52103255,Georgia Power,1.05,33.5439942,-82.1686481,OSM Overpass
 GPC,215,Goshen,yes,33.3197599,-81.9953118,high,yes,Goshen Substation,way/52019569,Georgia Power,1.05,33.3197599,-81.9953118,OSM Overpass
-GPC,215,Fenwick Street,yes,,,low,no,15th Street Substation,way/387268950,Georgia Power,0.61,33.4800189,-81.9848094,OSM Overpass
-GPC,215,Sand Bar Ferry,yes,,,low,no,Stanley Substation,way/1003714730,Georgia Power,0.526,31.9787862,-82.3612346,OSM Overpass
+GPC,215,Fenwick Street,yes,33.460770,-81.964742,low,guess,15th Street Substation,way/387268950,Georgia Power,0.61,33.4800189,-81.9848094,"OSM unnamed Georgia Power 115 kV, downtown Augusta; best location match"
+GPC,215,Sand Bar Ferry,yes,33.442514,-81.935045,low,guess,Stanley Substation,way/1003714730,Georgia Power,0.526,31.9787862,-82.3612346,OSM unnamed Georgia Power 115 kV toward Sand Bar Ferry Rd; ~2.2 mi from Fenwick candidate
 GPC,215,Thurmond Dam,yes,33.6601273,-82.1959307,medium,yes,Thurmond Substation,way/52102019,Georgia Power,0.85,33.6601273,-82.1959307,OSM Overpass
 GPC,219,Goshen (SAV),yes,32.2487012,-81.2094724,high,yes,Goshen Substation,way/1008141064,Georgia Power,1.05,32.2487012,-81.2094724,OSM Overpass
 GPC,219,Kraft,yes,32.1481353,-81.1459835,high,yes,Kraft Substation,way/121986375,Georgia Power,1.05,32.1481353,-81.1459835,OSM Overpass
 GPC,219,Little Ogeechee,yes,32.0067859,-81.2531513,high,yes,Little Ogeechee Substation,way/121701191,Georgia Power,1.05,32.0067859,-81.2531513,OSM Overpass
 GPC,219,Meldrim,yes,32.1552821,-81.368377,high,yes,Meldrim Substation,way/121624363,Georgia Power,1.05,32.1552821,-81.368377,OSM Overpass
-GPC,219,Purrysburg,yes,,,low,no,Burton Substation,way/185362029,South Carolina Electric & Gas Company,0.375,32.4364883,-80.7210159,OSM Overpass
+GPC,219,Purrysburg,yes,32.335802,-81.031444,low,guess,Burton Substation,way/185362029,South Carolina Electric & Gas Company,0.375,32.4364883,-80.7210159,OSM unnamed 230 kV on SC side near Hardeeville; McIntosh-Purrysburg is a 230 kV tie
 GPC,219,Mcintosh,yes,32.3521162,-81.1751124,medium,yes,McIntosh Substation,way/121624352,Georgia Power,1.05,32.3521162,-81.1751124,OSM Overpass
 DESC,SC,Adams Run,,32.7152773,-80.3539332,high,,Adams Run Substation,way/697675375,,1.0,32.7152773,-80.3539332,OSM Overpass
 DESC,SC,Batesburg,,33.9134867,-81.5644353,high,,Batesburg Substation,way/178951280,,1.0,33.9134867,-81.5644353,OSM Overpass
