@@ -2,7 +2,8 @@
 Regression test against the organizers' worked example (Projects_Overlaps.xlsx:
 10 projects DESC_1-5 / GPC_1-5 -> 6 overlaps OVL_1-6).
 
-It feeds THEIR coordinates through OUR overlap method (pipeline.overlap.compute_overlaps),
+It feeds THEIR coordinates through OUR overlap method (pipeline.method, the reference the
+PostGIS engine is cross-checked against),
 so it tests the method independently of our geocoding. Pass = same set of overlapping
 pairs, and distances within 0.3 mi when their overlaps sheet lists a distance.
 
@@ -14,11 +15,9 @@ Usage: python -m tests.check_answer_key data/raw/Projects_Overlaps.xlsx
 import re
 import sys
 
-import geopandas as gpd
 import pandas as pd
-from shapely.geometry import LineString, Point
 
-from pipeline.overlap import compute_overlaps, parse_date
+from pipeline.method import compute_overlaps, parse_date
 
 ID = re.compile(r"^(DESC|GPC)_\d+$", re.I)
 TOLERANCE_MI = 0.3
@@ -47,14 +46,11 @@ def load_key(path):
             center = (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts)) if pts else None
         if center is None:
             continue
-        geom = LineString([a, b]) if a and b else Point(a or b or center)
         pid = str(r[id_col])
         when = parse_date(pd.to_datetime(r[date_col]).strftime("%m/%d/%Y")) if date_col and pd.notna(r.get(date_col)) else None
-        rows.append({"utility": pid.split("_")[0].upper(), "project_id": pid, "name": pid,
-                     "center_lon": center[0], "center_lat": center[1], "in_service_effective": when,
-                     "build_start": None, "build_end": None, "in_service_passed": False,
-                     "location_confidence": "high", "is_override": False, "geometry": geom})
-    projects = gpd.GeoDataFrame(rows, geometry="geometry", crs="EPSG:4326")
+        rows.append({"utility_id": pid.split("_")[0].upper(), "project_id": pid,
+                     "center_lon": center[0], "center_lat": center[1], "in_service_date": when})
+    projects = pd.DataFrame(rows)
 
     ovl_cols = [c for c in proj.columns if re.match(r"overlap_\d+$", str(c))]
     members = {}
@@ -78,7 +74,7 @@ def load_key(path):
 def main(path):
     projects, expected, distances = load_key(path)
     ours = compute_overlaps(projects)
-    got = {tuple(sorted((d, g))): mi for d, g, mi in zip(ours.d_project_id, ours.g_project_id, ours.center_distance_mi)}
+    got = {tuple(sorted((a, b))): mi for a, b, mi in zip(ours.project_id_a, ours.project_id_b, ours.center_distance_mi)}
 
     exp_pairs = set(expected.values())
     missing, extra = exp_pairs - set(got), set(got) - exp_pairs

@@ -1,84 +1,87 @@
 """
-Load the pipeline's output into PostGIS.
+Load official data (data/processed/projects_standard.csv) into PostGIS through the same
+ingest() path user uploads use, then cross-check PostGIS against the Python reference method.
 
-  1. Runs db/schema.sql (drops and recreates tables with keys and spatial indexes).
-  2. Inserts projects.geojson and overlaps.geojson.
-  3. Cross-checks: the live PostGIS spatial join must reproduce the pipeline's overlap pairs.
-
-The pipeline stays the source of truth; PostGIS is the serving and query layer.
-
-Usage: python -m db.load_to_postgis        (needs `docker compose up -d db` or Postgres.app)
+  python -m db.load_to_postgis            # create tables on first run; replace official datasets; keep user uploads
+  python -m db.load_to_postgis --reset    # drop and recreate everything (deletes user uploads too)
 """
-import json
 import sys
 from pathlib import Path
 
+import pandas as pd
 from sqlalchemy import text
 
 from api.db import engine
+from api.ingest import IngestError, compute_overlaps, ingest
+from pipeline.method import compute_overlaps as reference_overlaps
 
 ROOT = Path(__file__).resolve().parent.parent
-PROJECT_COLS = ["utility", "project_id", "name", "description", "status", "zone", "kv",
-                "in_service_date", "in_service_date_updated", "in_service_effective",
-                "build_start", "build_end", "window_source", "location_confidence", "is_override",
-                "confidence_note", "corridor_group", "in_service_passed", "name_a", "name_b"]
-OVERLAP_COLS = ["overlap_id", "rank", "desc_id", "gpc_id", "desc_name", "gpc_name", "desc_in_service",
-                "gpc_in_service", "center_distance_mi", "closest_distance_km", "proximity_tier", "shareable",
-                "in_service_gap_days", "build_windows_overlap", "desc_window", "gpc_window",
-                "either_already_in_service", "location_confidence", "override_involved", "score",
-                "shared_row_acres_upper_bound", "shared_row_value_usd"]
+SOURCE = ROOT / "data" / "processed" / "projects_standard.csv"
+UTILITY_NAMES = {"DESC": "Dominion Energy South Carolina", "GPC": "Georgia Power"}
 
 
-def features(name):
-    return json.loads((ROOT / "data" / "processed" / name).read_text())["features"]
+def ensure_schema(conn, reset: bool):
+    exists = conn.execute(text("SELECT to_regclass('public.projects') IS NOT NULL")).scalar()
+    if reset or not exists:
+        conn.exec_driver_sql((ROOT / "db" / "schema.sql").read_text())
+        print("schema created" + (" (reset: user uploads removed)" if reset and exists else ""))
+    conn.exec_driver_sql((ROOT / "db" / "functions.sql").read_text())   # always refresh the engine
 
 
-def clean(v):
-    return None if v in ("", "None", "nan") else v
+def cross_check(conn) -> bool:
+    projects = pd.DataFrame(conn.execute(text("""
+        SELECT utility_id, project_id, ST_X(center) AS center_lon, ST_Y(center) AS center_lat, in_service_date
+        FROM projects""")).mappings().all())
+    ref = reference_overlaps(projects)
+    stored = pd.DataFrame(conn.execute(text(
+        "SELECT utility_a, project_id_a, utility_b, project_id_b, center_distance_mi, score FROM overlap_pairs"
+    )).mappings().all())
+    key = ["utility_a", "project_id_a", "utility_b", "project_id_b"]
+    ref_keys = set(map(tuple, ref[key].values)) if len(ref) else set()
+    db_keys = set(map(tuple, stored[key].values)) if len(stored) else set()
+    if ref_keys != db_keys:
+        print(f"cross-check MISMATCH: reference-only {sorted(ref_keys - db_keys)[:5]}, "
+              f"PostGIS-only {sorted(db_keys - ref_keys)[:5]}")
+        return False
+    if not ref_keys:
+        print("cross-check: no overlaps yet (add confirmed coordinates for more border projects)")
+        return True
+    m = ref.merge(stored, on=key, suffixes=("_ref", "_db"))
+    dist = (m.center_distance_mi_ref - m.center_distance_mi_db).abs().max()
+    score = (m.score_ref - m.score_db).abs().max()
+    ok = dist < 0.01 and score < 0.001
+    print(f"cross-check {'OK' if ok else 'MISMATCH'}: PostGIS matches the reference method on all "
+          f"{len(m)} pairs (max distance diff {dist:.4f} mi, max score diff {score:.4f})")
+    return ok
 
 
 def main():
-    projects, overlaps = features("projects.geojson"), features("overlaps.geojson")
+    reset = "--reset" in sys.argv
+    df = pd.read_csv(SOURCE, dtype=str).fillna("")
     with engine.begin() as conn:
-        conn.exec_driver_sql((ROOT / "db" / "schema.sql").read_text())
-
-        insert_p = text(f"""
-            INSERT INTO projects ({", ".join(PROJECT_COLS)}, geom, center)
-            VALUES ({", ".join(":" + c for c in PROJECT_COLS)},
-                    ST_SetSRID(ST_GeomFromGeoJSON(:geom), 4326),
-                    ST_SetSRID(ST_MakePoint(:center_lon, :center_lat), 4326))""")
-        conn.execute(insert_p, [
-            {**{c: clean(f["properties"].get(c)) for c in PROJECT_COLS},
-             "is_override": bool(f["properties"].get("is_override")),
-             "in_service_passed": bool(f["properties"].get("in_service_passed")),
-             "geom": json.dumps(f["geometry"]),
-             "center_lon": f["properties"]["center_lon"], "center_lat": f["properties"]["center_lat"]}
-            for f in projects])
-
-        insert_o = text(f"""
-            INSERT INTO overlap_pairs ({", ".join(OVERLAP_COLS)}, connector)
-            VALUES ({", ".join(":" + c for c in OVERLAP_COLS)}, ST_SetSRID(ST_GeomFromGeoJSON(:connector), 4326))""")
-        if overlaps:
-            conn.execute(insert_o, [
-                {**{c: clean(f["properties"].get(c)) for c in OVERLAP_COLS},
-                 "connector": json.dumps(f["geometry"])} for f in overlaps])
-
-        conn.exec_driver_sql("ANALYZE projects; ANALYZE overlap_pairs;")  # fresh stats -> planner uses the spatial index
-        live = conn.execute(text((ROOT / "db" / "live_overlaps.sql").read_text()),
-                            {"max_mi": 25.0, "max_m": 25 * 1609.344, "hide_in_service": False}).mappings().all()
-
-    stored = {(o["properties"]["desc_id"], o["properties"]["gpc_id"]): o["properties"]["center_distance_mi"]
-              for o in overlaps}
-    live_pairs = {(r["desc_id"], r["gpc_id"]): r["center_distance_mi"] for r in live}
-    worst = max((abs(live_pairs[k] - v) for k, v in stored.items() if k in live_pairs), default=0.0)
-    print(f"loaded {len(projects)} projects, {len(overlaps)} overlaps into PostGIS")
-    if set(stored) == set(live_pairs):
-        print(f"cross-check OK: live ST_DWithin query reproduces all {len(stored)} pipeline pairs "
-              f"(max distance difference {worst:.3f} mi)")
-    else:
-        print(f"cross-check MISMATCH: pipeline-only {sorted(set(stored) - set(live_pairs))}, "
-              f"PostGIS-only {sorted(set(live_pairs) - set(stored))}")
-        sys.exit(1)
+        ensure_schema(conn, reset)
+        # The pipeline owns official data: replace every official dataset of the utilities in this
+        # file (even if its source name changed, e.g. a newer DESC edition). User uploads are kept.
+        stale = conn.execute(text("DELETE FROM datasets WHERE kind = 'official' AND utility_id = ANY(:u) "
+                                  "RETURNING source_name"), {"u": sorted(df.utility_id.unique())}).scalars().all()
+        if stale:
+            print(f"replacing official datasets: {', '.join(stale)}")
+        for (utility, source), group in df.groupby(["utility_id", "source_name"]):
+            try:
+                res = ingest(conn, group.to_dict("records"), utility_id=utility,
+                             utility_name=UTILITY_NAMES.get(utility), source_name=source, kind="official",
+                             submitted_by="official pipeline", public_attestation=True, compute=False)
+            except IngestError as e:
+                raise SystemExit(f"{utility}: {e} {[x.model_dump() for x in e.errors[:5]]}") from None
+            print(f"{utility}: {res.rows_accepted}/{res.rows_received} projects loaded as '{source}'")
+            for err in res.errors[:10]:
+                print(f"   rejected row {err.row} ({err.project_id}): {err.error}")
+        n = compute_overlaps(conn)          # all pairs, including any user-uploaded utilities
+        conn.exec_driver_sql("ANALYZE utilities; ANALYZE datasets; ANALYZE projects; ANALYZE overlap_pairs;")
+        total = conn.execute(text("SELECT count(*) FROM overlap_pairs")).scalar()
+        print(f"overlaps: {n} new, {total} stored")
+        ok = cross_check(conn)
+    sys.exit(0 if ok else 1)
 
 
 if __name__ == "__main__":

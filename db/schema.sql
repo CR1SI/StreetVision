@@ -1,72 +1,88 @@
--- PostGIS schema for the Gridlock overlap tool.
--- load_to_postgis.py runs this file first on every load, so indexes and keys always exist
--- (loading with GeoPandas if_exists="replace" would silently drop them).
+-- PostGIS schema: any number of utilities, official and user-submitted datasets.
+-- Created on the first load, or recreated with `python -m db.load_to_postgis --reset`
+-- (which deletes user uploads too). The overlap engine lives in functions.sql.
 
 CREATE EXTENSION IF NOT EXISTS postgis;
 
-DROP TABLE IF EXISTS overlap_pairs;   -- "overlaps" is a reserved word in PostgreSQL
+DROP TABLE IF EXISTS overlap_pairs;   -- note: "overlaps" is a reserved word in PostgreSQL
 DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS datasets;
+DROP TABLE IF EXISTS utilities;
+
+CREATE TABLE utilities (
+    utility_id  TEXT PRIMARY KEY CHECK (utility_id ~ '^[A-Z][A-Z0-9_]{1,15}$'),
+    name        TEXT,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- One upload or one official source document. Deleting a dataset removes its projects
+-- and every overlap they were part of.
+CREATE TABLE datasets (
+    dataset_id          SERIAL PRIMARY KEY,
+    utility_id          TEXT NOT NULL REFERENCES utilities ON DELETE CASCADE,
+    source_name         TEXT NOT NULL,
+    kind                TEXT NOT NULL CHECK (kind IN ('official', 'user_submitted')),
+    submitted_by        TEXT,
+    public_attestation  BOOLEAN NOT NULL,      -- uploader confirmed: public data, no CEII
+    notes               TEXT,
+    delete_token_hash   TEXT,                  -- sha256 of the token returned once at upload
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (utility_id, source_name),
+    CHECK (public_attestation)
+);
 
 CREATE TABLE projects (
-    utility                 TEXT    NOT NULL CHECK (utility IN ('DESC', 'GPC')),
-    project_id              TEXT    NOT NULL,           -- DESC ID or GPC TEAMS number: separate numbering systems
-    name                    TEXT    NOT NULL,
+    utility_id              TEXT NOT NULL REFERENCES utilities ON DELETE CASCADE,
+    project_id              TEXT NOT NULL,
+    dataset_id              INTEGER NOT NULL REFERENCES datasets ON DELETE CASCADE,
+    name                    TEXT NOT NULL,
     description             TEXT,
     status                  TEXT,
-    zone                    TEXT,                       -- GPC planning zone (215 Augusta, 219 Savannah)
+    region                  TEXT,
     kv                      INTEGER,
-    in_service_date         DATE,                       -- baseline edition
-    in_service_date_updated DATE,                       -- newer DESC edition, shown alongside, never overwriting
-    in_service_effective    DATE,                       -- the date the overlap math used
+    in_service_date         DATE,              -- the date the overlap math uses
+    in_service_date_updated DATE,              -- a newer published date, shown alongside
     build_start             INTEGER,
     build_end               INTEGER,
-    window_source           TEXT,
-    location_confidence     TEXT    NOT NULL CHECK (location_confidence IN ('high', 'medium', 'low', 'none')),
+    location_confidence     TEXT NOT NULL CHECK (location_confidence IN ('high', 'medium', 'low', 'none')),
     is_override             BOOLEAN NOT NULL DEFAULT false,
     confidence_note         TEXT,
     corridor_group          TEXT,
-    in_service_passed       BOOLEAN NOT NULL DEFAULT false,
     name_a                  TEXT,
     name_b                  TEXT,
-    geom                    GEOMETRY(Geometry, 4326) NOT NULL,   -- Point, LineString, or multi-part
-    center                  GEOMETRY(Point, 4326)    NOT NULL,
-    PRIMARY KEY (utility, project_id)
+    geom                    GEOMETRY(Geometry, 4326) NOT NULL
+                            CHECK (GeometryType(geom) IN ('POINT', 'MULTIPOINT', 'LINESTRING', 'MULTILINESTRING')),
+    center                  GEOMETRY(Point, 4326) NOT NULL,
+    PRIMARY KEY (utility_id, project_id)
 );
 
+-- A pair of projects from two different utilities, stored once (utility_a < utility_b).
+-- Display fields (names, dates) are joined from projects at query time; rank is computed per query.
 CREATE TABLE overlap_pairs (
-    overlap_id                    TEXT PRIMARY KEY,           -- OVL_1, OVL_2, ... in rank order
-    rank                          INTEGER NOT NULL UNIQUE,
-    desc_utility                  TEXT NOT NULL DEFAULT 'DESC' CHECK (desc_utility = 'DESC'),
-    desc_id                       TEXT NOT NULL,
-    gpc_utility                   TEXT NOT NULL DEFAULT 'GPC'  CHECK (gpc_utility = 'GPC'),
-    gpc_id                        TEXT NOT NULL,
-    desc_name                     TEXT NOT NULL,
-    gpc_name                      TEXT NOT NULL,
-    desc_in_service               DATE,
-    gpc_in_service                DATE,
-    center_distance_mi            DOUBLE PRECISION NOT NULL,
-    closest_distance_km           DOUBLE PRECISION,
-    proximity_tier                TEXT NOT NULL,
-    shareable                     TEXT,
-    in_service_gap_days           INTEGER,
-    build_windows_overlap         BOOLEAN,
-    desc_window                   TEXT,
-    gpc_window                    TEXT,
-    either_already_in_service     BOOLEAN,
-    location_confidence           TEXT NOT NULL,
-    override_involved             BOOLEAN NOT NULL DEFAULT false,
-    score                         DOUBLE PRECISION NOT NULL,
-    shared_row_acres_upper_bound  DOUBLE PRECISION,
-    shared_row_value_usd          DOUBLE PRECISION,
-    connector                     GEOMETRY(LineString, 4326) NOT NULL,
-    FOREIGN KEY (desc_utility, desc_id) REFERENCES projects (utility, project_id) ON DELETE CASCADE,
-    FOREIGN KEY (gpc_utility, gpc_id)   REFERENCES projects (utility, project_id) ON DELETE CASCADE
+    overlap_id              BIGSERIAL PRIMARY KEY,
+    utility_a               TEXT NOT NULL,
+    project_id_a            TEXT NOT NULL,
+    utility_b               TEXT NOT NULL,
+    project_id_b            TEXT NOT NULL,
+    center_distance_mi      DOUBLE PRECISION NOT NULL,
+    closest_distance_km     DOUBLE PRECISION NOT NULL,
+    proximity_tier          TEXT NOT NULL,
+    in_service_gap_days     INTEGER,
+    build_windows_overlap   BOOLEAN NOT NULL,
+    location_confidence     TEXT NOT NULL,
+    override_involved       BOOLEAN NOT NULL,
+    score                   DOUBLE PRECISION NOT NULL,
+    shared_row_acres        DOUBLE PRECISION,
+    connector               GEOMETRY(LineString, 4326) NOT NULL,
+    CHECK (utility_a < utility_b),
+    UNIQUE (utility_a, project_id_a, utility_b, project_id_b),
+    FOREIGN KEY (utility_a, project_id_a) REFERENCES projects (utility_id, project_id) ON DELETE CASCADE,
+    FOREIGN KEY (utility_b, project_id_b) REFERENCES projects (utility_id, project_id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_projects_geom       ON projects USING GIST (geom);
-CREATE INDEX idx_projects_center     ON projects USING GIST (center);
--- ST_DWithin on geography (meters) needs a geography index to use it
-CREATE INDEX idx_projects_center_geo ON projects USING GIST ((center::geography));
-CREATE INDEX idx_projects_utility    ON projects (utility);
-CREATE INDEX idx_overlaps_score      ON overlap_pairs (score DESC);
-CREATE INDEX idx_overlaps_distance   ON overlap_pairs (center_distance_mi);
+CREATE INDEX idx_projects_geom        ON projects USING GIST (geom);
+CREATE INDEX idx_projects_center      ON projects USING GIST (center);
+CREATE INDEX idx_projects_center_geo  ON projects USING GIST ((center::geography));  -- used by ST_DWithin
+CREATE INDEX idx_projects_dataset     ON projects (dataset_id);
+CREATE INDEX idx_overlaps_score       ON overlap_pairs (score DESC);
+CREATE INDEX idx_overlaps_b           ON overlap_pairs (utility_b, project_id_b);
