@@ -37,9 +37,9 @@ export function Timeline({ projects, colors }) {
             <div className="w-[92px] shrink-0 truncate pr-3 text-[11.5px] font-bold" style={{ color: colors[r.p.utility_id] }} title={tidyName(r.p.name)}>
               {r.p.utility_id}
             </div>
-            <div className="relative h-full flex-1 border-l border-ink-500">
+            <div className="relative h-full flex-1 border-l border-white/[0.07]">
               {ticks.map((y) => (
-                <span key={y} className="absolute inset-y-0 w-px bg-ink-600/70" style={{ left: x(y) }} />
+                <span key={y} className="absolute inset-y-0 w-px bg-white/[0.07]/70" style={{ left: x(y) }} />
               ))}
               {r.start && r.end && (
                 <span

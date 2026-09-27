@@ -13,13 +13,13 @@ export const OverlapCard = forwardRef(function OverlapCard({ o, colors, selected
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`group block w-full rounded-xl px-4 pb-3 pt-3.5 text-left transition-colors ${
-        selected ? 'bg-ink-600 shadow-[inset_3px_0_0_#F0397E]' : 'bg-ink-700 shadow-[inset_3px_0_0_transparent] hover:bg-[#1B2641]'
+      className={`group block w-full rounded-2xl border px-4 pb-3.5 pt-3.5 text-left transition-colors ${
+        selected ? 'border-[#8B7CF6]/70 bg-white/[0.08]' : 'border-white/[0.06] bg-white/[0.035] hover:bg-white/[0.07]'
       }`}
     >
       <div className="mb-2.5 flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2">
-          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink-600 px-1 text-[11px] font-semibold text-fg-dim group-aria-pressed:bg-ink-500">
+          <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-white/[0.08] px-1 text-[11px] font-semibold text-fg group-aria-pressed:bg-[#8B7CF6] group-aria-pressed:text-white">
             {o.rank}
           </span>
           {live ? <span className="text-[12px] font-semibold text-[#C4B5FD]">Live · {fmtNum(o.center_distance_mi, 1)} mi</span> : <TierLabel tier={o.proximity_tier} />}

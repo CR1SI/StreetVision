@@ -23,35 +23,66 @@
     @apply font-display;
   }
   :focus-visible {
-    outline: 2px solid #2fd1c0;
+    outline: 2px solid #8b7cf6;
     outline-offset: 2px;
   }
 }
 
 @layer components {
-  .card {
-    @apply rounded-xl border border-ink-500 bg-ink-800;
+  /* ---- Glass system: floating panels over the map, translucent cards inside them ---- */
+  .glass {
+    @apply rounded-[22px] border border-white/[0.08] bg-[#0D1322]/75 shadow-[0_24px_64px_rgba(0,0,0,0.45)] backdrop-blur-xl;
   }
+  .card {
+    @apply rounded-2xl border border-white/[0.07] bg-white/[0.035] backdrop-blur-md;
+  }
+  .tile {
+    @apply rounded-2xl border border-white/[0.06] bg-white/[0.04];
+  }
+  /* Soft pastel stat tiles for the headline numbers (distance, time) */
+  .tile-pink {
+    @apply rounded-2xl bg-[#F3C4EA] text-[#2E0B28];
+  }
+  .tile-blue {
+    @apply rounded-2xl bg-[#C9D5FF] text-[#0E1A3A];
+  }
+  .tile-mint {
+    @apply rounded-2xl bg-[#BDEDE4] text-[#06302A];
+  }
+  /* Segmented pill control (nav, radius, tabs) */
+  .seg {
+    @apply inline-flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.04] p-1;
+  }
+  .seg-item {
+    @apply rounded-full px-3.5 py-1.5 text-[13px] font-medium text-fg-dim transition-colors hover:text-fg;
+  }
+  .seg-item[aria-current='page'],
+  .seg-item[aria-checked='true'],
+  .seg-item[aria-pressed='true'] {
+    @apply bg-white/[0.1] text-fg;
+  }
+
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
   }
+  /* One primary action color everywhere: violet */
   .btn-primary {
-    @apply btn bg-brand-teal text-[#06231F] hover:bg-[#5BE0D2];
+    @apply btn bg-[#8B7CF6] text-white hover:bg-[#9D90F8];
   }
   .btn-purple {
-    @apply btn bg-brand-purple text-white hover:bg-[#958BF3];
+    @apply btn-primary;
   }
   .btn-pink {
-    @apply btn bg-brand-pink text-white hover:bg-[#F45F96];
+    @apply btn-primary;
   }
   .btn-ghost {
-    @apply btn border border-ink-500 bg-transparent text-fg-dim hover:border-fg-faint hover:text-fg;
+    @apply btn border border-white/10 bg-white/[0.03] text-fg-dim hover:bg-white/[0.07] hover:text-fg;
   }
   .btn-danger {
-    @apply btn border border-brand-pink bg-transparent text-brand-pink hover:bg-brand-pink-dim;
+    @apply btn border border-brand-pink/70 bg-transparent text-brand-pink hover:bg-brand-pink-dim;
   }
   .input {
-    @apply w-full rounded-xl border border-ink-500 bg-ink-700 px-3 py-2.5 text-[13px] text-fg placeholder:text-fg-faint focus:border-brand-teal focus:outline-none;
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-[13px] text-fg placeholder:text-fg-faint focus:border-[#8B7CF6] focus:outline-none;
   }
   .label {
     @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-fg-dim;
@@ -64,8 +95,16 @@
   }
   .scroll-thin {
     scrollbar-width: thin;
-    scrollbar-color: #1e2a46 transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
   }
+}
+
+/* Soft glow behind the non-map pages so the glass cards have something to sit on */
+.page-glow {
+  background:
+    radial-gradient(900px 500px at 10% -10%, rgba(139, 124, 246, 0.16), transparent 60%),
+    radial-gradient(700px 500px at 100% 110%, rgba(47, 209, 192, 0.08), transparent 60%),
+    #0a0f1c;
 }
 
 /* ---------- MapLibre dark theme ---------- */

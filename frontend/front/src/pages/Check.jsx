@@ -113,7 +113,7 @@ export default function Check() {
 
   return (
     <Layout active="check" fill>
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
         <section className="relative h-[55vh] min-h-[380px] flex-none lg:h-auto lg:flex-1">
           <div className="absolute inset-0">
           <MapView
@@ -123,7 +123,7 @@ export default function Check() {
             colors={utils.colors}
             highlight={highlight}
             fit={fit}
-            fitOptions={{ padding: { top: 140, bottom: 50, left: 50, right: 70 }, maxZoom: 12.5 }}
+            fitOptions={{ padding: { top: 140, bottom: 50, left: 50, right: window.innerWidth >= 1024 ? 500 : 70 }, maxZoom: 12.5 }}
             onReady={(map) => {
               mapRef.current = map
               setMapReady(true)
@@ -136,9 +136,9 @@ export default function Check() {
           />
           </div>
 
-          <form onSubmit={run} className="absolute left-1/2 top-4 z-20 w-[min(560px,calc(100%-5rem))] -translate-x-1/2 sm:top-6" role="search">
+          <form onSubmit={run} className="absolute left-4 top-4 z-20 w-[min(560px,calc(100%-5rem))] sm:top-6 lg:left-6 lg:w-[min(560px,calc(100%-420px-9rem))]" role="search">
             <div className="flex gap-2">
-              <label className="flex flex-1 items-center gap-2.5 rounded-xl border border-ink-500 bg-ink-800/95 px-4 py-3 shadow-2xl backdrop-blur focus-within:border-brand-pink">
+              <label className="glass flex flex-1 items-center gap-2.5 rounded-2xl px-4 py-3 focus-within:border-[#8B7CF6]">
                 <Search className="h-4 w-4 shrink-0 text-fg-faint" aria-hidden="true" />
                 <span className="sr-only">Address, city, ZIP, or lat, lon</span>
                 <input
@@ -148,7 +148,7 @@ export default function Check() {
                   className="w-full bg-transparent text-[13px] placeholder:text-fg-faint focus:outline-none"
                 />
               </label>
-              <button type="submit" className="btn-pink rounded-xl px-5 shadow-2xl" disabled={geoBusy || !query.trim()}>
+              <button type="submit" className="btn-primary rounded-2xl px-5 shadow-2xl" disabled={geoBusy || !query.trim()}>
                 {geoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Check'}
               </button>
             </div>
@@ -163,7 +163,7 @@ export default function Check() {
                     setQuery(ex.label)
                     setPoint(ex)
                   }}
-                  className="rounded-full border border-ink-500 bg-ink-800/90 px-2.5 py-1 text-[11px] text-fg-dim hover:border-fg-faint hover:text-fg"
+                  className="rounded-full border border-white/[0.08] bg-[#0D1322]/75 px-2.5 py-1 text-[11px] text-fg-dim backdrop-blur hover:text-fg"
                 >
                   {ex.label}
                 </button>
@@ -180,13 +180,16 @@ export default function Check() {
           </form>
         </section>
 
-        <aside className="scroll-thin flex min-h-0 flex-1 flex-col overflow-y-auto border-ink-500 bg-ink-800 lg:w-[440px] lg:flex-none lg:border-l" aria-live="polite">
-          <div className="border-b border-ink-500 px-6 py-5">
-            <h1 className="mb-1 text-base font-bold">Check an address</h1>
+        <aside
+          className="glass scroll-thin m-3 flex min-h-0 flex-1 flex-col overflow-y-auto lg:absolute lg:bottom-14 lg:right-14 lg:top-4 lg:z-30 lg:m-0 lg:w-[420px]"
+          aria-live="polite"
+        >
+          <div className="border-b border-white/[0.06] px-6 py-5">
+            <h1 className="mb-1 text-lg font-bold">Check an address</h1>
             <p className="mb-4 text-[12px] text-fg-dim">Is this location inside a zone where two utilities plan work close together? And why?</p>
             <div className="flex items-center gap-3">
               <span id="radius-label" className="text-[12px] text-fg-dim">Radius</span>
-              <div className="flex gap-1 rounded-xl border border-ink-500 bg-ink-700 p-1" role="radiogroup" aria-labelledby="radius-label">
+              <div className="seg" role="radiogroup" aria-labelledby="radius-label">
               {RADII.map((r) => (
                 <button
                   key={r}
@@ -194,7 +197,7 @@ export default function Check() {
                   role="radio"
                   aria-checked={radius === r}
                   onClick={() => setRadius(r)}
-                  className={`chip min-h-[32px] ${radius === r ? 'bg-brand-pink text-white' : 'text-fg-dim hover:bg-ink-600 hover:text-fg'}`}
+                  className="seg-item"
                 >
                   {r} mi
                 </button>
@@ -223,10 +226,10 @@ function Intro() {
   return (
     <div className="space-y-4 text-[13px] leading-relaxed text-fg-dim">
       <div className="flex items-start gap-3">
-        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-pink" />
+        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#8B7CF6]" />
         <p>Search an address or ZIP, pick an example, or click anywhere on the map.</p>
       </div>
-      <details className="group rounded-xl border border-ink-500 bg-ink-700 px-4 py-3">
+      <details className="tile group px-4 py-3">
         <summary className="cursor-pointer list-none text-[13px] font-semibold text-fg marker:hidden">
           How it works <span className="ml-1 text-fg-faint group-open:hidden">+</span><span className="ml-1 hidden text-fg-faint group-open:inline">–</span>
         </summary>
@@ -301,7 +304,7 @@ function Verdict({ v, point, radius, colors }) {
           <h3 className="eyebrow mb-2.5 text-fg-faint">Flagged pairs ({v.matched.length})</h3>
           <div className="space-y-2">
             {v.matched.map((o) => (
-              <a key={o.overlap_id} href={`/overlap/?id=${o.overlap_id}`} className="block rounded-xl bg-ink-700 px-4 py-3 transition-colors hover:bg-ink-600">
+              <a key={o.overlap_id} href={`/overlap/?id=${o.overlap_id}`} className="block rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors hover:bg-white/[0.07]">
                 <div className="mb-1.5 flex items-center justify-between">
                   <TierLabel tier={o.proximity_tier} />
                   <span className="text-[11px] text-fg-faint">#{o.rank} · {fmtNum(o.center_distance_mi, 1)} mi</span>
@@ -336,7 +339,7 @@ function Verdict({ v, point, radius, colors }) {
       )}
 
       {v.lonely.length > 0 && (
-        <div className="border-t border-ink-500 pt-4">
+        <div className="border-t border-white/[0.07] pt-4">
           <h3 className="eyebrow mb-2.5 text-fg-faint">Also nearby, no flagged overlap</h3>
           <ul className="space-y-1.5">
             {v.lonely.slice(0, 8).map((n) => (

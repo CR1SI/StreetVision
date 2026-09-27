@@ -77,7 +77,7 @@ export default function About() {
         <ol className="mb-12 space-y-4">
           {STEPS.map(([t, d], i) => (
             <li key={t} className="flex gap-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-ink-600 text-[12px] font-bold text-fg-dim">{i + 1}</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.07] text-[12px] font-bold text-fg-dim">{i + 1}</span>
               <p className="pt-0.5 text-[13.5px] leading-6 text-fg-dim">
                 <b className="text-fg">{t}.</b> {d}
               </p>
@@ -92,7 +92,7 @@ export default function About() {
         </p>
         <div className="card mb-12 overflow-hidden">
           {TIERS.map((t) => (
-            <div key={t.key} className="flex items-center gap-4 border-b border-ink-500 px-5 py-3.5 last:border-b-0">
+            <div key={t.key} className="flex items-center gap-4 border-b border-white/[0.07] px-5 py-3.5 last:border-b-0">
               <span className="w-6 border-t-[3px] border-dashed" style={{ borderColor: t.color }} />
               <span className="w-40 shrink-0 text-[13px] font-bold" style={{ color: t.color }}>
                 {t.label}

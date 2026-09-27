@@ -43,7 +43,7 @@ export function UtilityTag({ id, colors, className = '' }) {
 
 export function Pill({ children, tone = 'default', title, className = '' }) {
   const tones = {
-    default: 'bg-ink-600 text-fg-dim',
+    default: 'bg-white/[0.07] text-fg-dim',
     teal: 'bg-brand-teal-dim text-brand-teal',
     pink: 'bg-brand-pink-dim text-brand-pink',
     amber: 'bg-brand-amber-dim text-brand-amber',
@@ -83,12 +83,12 @@ export function ErrorState({ error, onRetry, className = '' }) {
 }
 
 export function Skeleton({ className = '' }) {
-  return <div className={`animate-pulse rounded-xl bg-ink-700 ${className}`} />
+  return <div className={`animate-pulse rounded-2xl bg-white/[0.04] ${className}`} />
 }
 
 export function Stat({ value, label, tone }) {
   return (
-    <div className="rounded-xl bg-ink-700 px-4 py-3.5 text-center">
+    <div className="rounded-2xl bg-white/[0.04] px-4 py-3.5 text-center">
       <div className="font-display text-xl font-bold" style={tone ? { color: tone } : undefined}>
         {value}
       </div>

@@ -44,7 +44,7 @@ export default function DataCatalog() {
               browse or download.
             </p>
           </div>
-          <label className="flex w-full items-center gap-2.5 rounded-xl border border-ink-500 bg-ink-800 px-3.5 py-2.5 focus-within:border-brand-teal md:w-80">
+          <label className="flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.035] px-3.5 py-2.5 focus-within:border-brand-teal md:w-80">
             <Search className="h-4 w-4 text-fg-faint" aria-hidden="true" />
             <span className="sr-only">Search datasets</span>
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search datasets, utilities…" className="w-full bg-transparent text-[13px] placeholder:text-fg-faint focus:outline-none" />
@@ -73,7 +73,7 @@ export default function DataCatalog() {
               role="tab"
               aria-selected={tab === t.v}
               onClick={() => setTab(t.v)}
-              className={`chip ${tab === t.v ? 'bg-ink-600 text-fg' : 'text-fg-dim hover:text-fg'}`}
+              className={`chip ${tab === t.v ? 'bg-white/[0.07] text-fg' : 'text-fg-dim hover:text-fg'}`}
             >
               {t.l}
             </button>
@@ -91,7 +91,7 @@ export default function DataCatalog() {
           )}
           <a
             href="/contribute/"
-            className="flex min-h-40 items-center justify-center gap-2.5 rounded-2xl border-[1.5px] border-dashed border-ink-500 p-6 text-fg-dim transition-colors hover:border-brand-teal hover:text-fg md:col-span-2 xl:col-span-3"
+            className="flex min-h-40 items-center justify-center gap-2.5 rounded-2xl border-[1.5px] border-dashed border-white/[0.07] p-6 text-fg-dim transition-colors hover:border-brand-teal hover:text-fg md:col-span-2 xl:col-span-3"
           >
             <Plus className="h-5 w-5 text-fg-faint" aria-hidden="true" />
             <span className="text-[13.5px] font-semibold">Contribute your utility’s planned-project data</span>
@@ -149,7 +149,7 @@ function DatasetCard({ d, color, name }) {
         </Row>
       </div>
       <div className="flex gap-2">
-        <a href={`/dataset/?id=${d.dataset_id}`} className="btn flex-1 font-bold" style={{ background: color, color: '#0A0F1C' }}>
+        <a href={`/dataset/?id=${d.dataset_id}`} className="btn-primary flex-1">
           View dataset
         </a>
         <button type="button" className="btn-ghost px-3" onClick={() => get('geojson')} disabled={!!busy} aria-label="Download GeoJSON" title="Download GeoJSON">
