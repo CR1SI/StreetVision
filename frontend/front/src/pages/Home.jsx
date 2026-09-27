@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import {
-  ArrowLeft, Box, CalendarCheck2, ExternalLink, Hand, Info, Loader2, Maximize2, Orbit, Plus, RotateCcw, SlidersHorizontal, Square, Users, WifiOff, X, Zap,
+  ArrowLeft, Box, CalendarCheck2, ChevronDown, ChevronUp, ExternalLink, Hand, Info, Loader2, Maximize2, Orbit, Plus, RotateCcw, SlidersHorizontal, Square, Users, WifiOff, X, Zap,
 } from 'lucide-react'
 import { Layout } from '../components/Layout'
 import { OverlapCard } from '../components/OverlapCard'
@@ -59,6 +59,7 @@ export default function Home() {
   const [filters, setFilters] = useState(initialFilters)
   const [radiusDraft, setRadiusDraft] = useState(filters.radius)
   const [selectedKey, setSelectedKey] = useState(() => (param('overlap') ? Number(param('overlap')) : null))
+  const [listMin, setListMin] = useState(false) // ranked list collapsed to its title bar
   const [filtersOpen, setFiltersOpen] = useState(() => window.innerWidth >= 640)
   const live = filters.radius > 25
 
@@ -314,7 +315,7 @@ export default function Home() {
     <Layout active="home" fill>
       <div className="relative flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
         {/* ------------------------------------------------ MAP */}
-        <section className="relative h-[58vh] min-h-[360px] flex-none lg:h-auto lg:flex-1" aria-label="Map of planned projects">
+        <section className={`relative min-h-[360px] lg:h-auto lg:flex-1 ${listMin && !selected ? 'flex-1' : 'h-[58vh] flex-none'}`} aria-label="Map of planned projects">
           <div className="absolute inset-0">
             <div ref={container} className="h-full w-full" />
           </div>
@@ -459,17 +460,47 @@ export default function Home() {
 
         {/* ------------------------------------------------ SIDEBAR */}
         <aside
-          className="glass m-3 flex min-h-0 flex-1 flex-col overflow-hidden lg:absolute lg:bottom-14 lg:right-14 lg:top-4 lg:z-30 lg:m-0 lg:w-[420px]"
+          className={`glass m-3 flex min-h-0 flex-col overflow-hidden lg:absolute lg:right-14 lg:top-4 lg:z-30 lg:m-0 lg:w-[420px] ${
+            listMin && !selected ? 'flex-none' : 'flex-1 lg:bottom-14'
+          }`}
           aria-label="Ranked coordination opportunities"
         >
           {selected ? (
             <OverlapPanel o={selected} colors={utils.colors} orbiting={orbiting} onBack={() => select(null)} onOrbit={() => select(selected)} onStop={stopOrbit} />
+          ) : listMin ? (
+            <button
+              type="button"
+              onClick={() => setListMin(false)}
+              aria-expanded="false"
+              className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left hover:bg-ink-700"
+            >
+              <span className="flex items-center gap-2.5">
+                <span className="text-[15px] font-bold">Ranked opportunities</span>
+                <span className="border border-ink-500 bg-ink-700 px-2.5 py-0.5 text-[12px] font-semibold text-fg">{overlaps.loading ? '…' : list.length}</span>
+              </span>
+              <span className="flex h-7 w-7 items-center justify-center text-fg-dim" title="Expand">
+                <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">Expand ranked opportunities</span>
+              </span>
+            </button>
           ) : (
             <>
               <div className="border-b border-ink-500 px-5 pb-4 pt-5">
-                <div className="mb-1 flex items-center justify-between">
+                <div className="mb-1 flex items-center justify-between gap-3">
                   <h1 className="text-lg font-bold">Ranked opportunities</h1>
-                  <span className="border border-ink-500 bg-ink-700 px-2.5 py-0.5 text-[12px] font-semibold text-fg">{overlaps.loading ? '…' : list.length}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="border border-ink-500 bg-ink-700 px-2.5 py-0.5 text-[12px] font-semibold text-fg">{overlaps.loading ? '…' : list.length}</span>
+                    <button
+                      type="button"
+                      onClick={() => setListMin(true)}
+                      aria-expanded="true"
+                      title="Minimize"
+                      className="flex h-7 w-7 items-center justify-center border border-ink-500 text-fg-dim hover:bg-ink-700 hover:text-fg"
+                    >
+                      <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                      <span className="sr-only">Minimize ranked opportunities</span>
+                    </button>
+                  </div>
                 </div>
                 <p className="text-xs text-fg-dim">
                   {filters.utilities.length ? filters.utilities.join(' × ') : 'All utilities'} · within {filters.radius} mi
