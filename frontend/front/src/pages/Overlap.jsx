@@ -8,7 +8,7 @@ import { param, useAsync } from '../hooks/useAsync'
 import { useUtilities } from '../hooks/useUtilities'
 import { api } from '../lib/api'
 import { CONFIDENCE, tierColor } from '../lib/colors'
-import { fmtDate, fmtGap, fmtNum, fmtUsd, tidyName } from '../lib/format'
+import { fmtDate, fmtDistance, fmtGap, fmtNum, fmtUsd, tidyName } from '../lib/format'
 import { bounds, midpoint } from '../lib/geo'
 import { projectKey } from '../lib/mapLayers'
 
@@ -41,12 +41,19 @@ export default function Overlap() {
 
   // Both projects' real geometries for the inset map.
   const pair = useAsync(
-    (signal) => (o ? api.projects({ utilities: [o.a.utility_id, o.b.utility_id] }, { signal }) : Promise.resolve(null)),
+    (signal) => {
+      if (!o) return Promise.resolve(null)
+      const pa = o.project_a ?? o.a
+      const pb = o.project_b ?? o.b
+      return api.projects({ utilities: [pa.utility_id, pb.utility_id] }, { signal })
+    },
     [o?.overlap_id],
   )
   const pairFc = useMemo(() => {
     if (!pair.data || !o) return null
-    const keys = [projectKey(o.a), projectKey(o.b)]
+    const pa = o.project_a ?? o.a
+    const pb = o.project_b ?? o.b
+    const keys = [projectKey(pa), projectKey(pb)]
     return { ...pair.data, features: pair.data.features.filter((f) => keys.includes(projectKey(f.properties))) }
   }, [pair.data, o])
   const pairOverlaps = useMemo(() => (o ? [o] : undefined), [o])
@@ -104,14 +111,14 @@ export default function Overlap() {
               </h1>
 
               <div className="mb-6 grid gap-4 md:grid-cols-2">
-                {[o.project_a, o.project_b].map((p) => (
+                {[o.project_a ?? o.a, o.project_b ?? o.b].map((p) => (
                   <ProjectCard key={projectKey(p)} p={p} colors={utils.colors} name={utils.names[p.utility_id]} />
                 ))}
               </div>
 
               <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
                 <Stat value={`${fmtNum(o.center_distance_mi, 2)} mi`} label="Center distance (official)" />
-                <Stat value={`${fmtNum(o.closest_distance_km, 2)} km`} label="Closest points" />
+                <Stat value={fmtDistance(o.closest_distance_mi)} label="Closest points" />
                 <Stat value={o.in_service_gap_days === null ? '—' : fmtNum(o.in_service_gap_days)} label="Days between in-service" />
                 <Stat value={CONFIDENCE[o.location_confidence]?.label} label="Location confidence" tone={CONFIDENCE[o.location_confidence]?.fg} />
               </div>
@@ -122,7 +129,7 @@ export default function Overlap() {
                   What could be shared
                 </div>
                 <p className="text-[13px] text-fg/90">
-                  {o.shareable}. The closest points of the two projects are {fmtNum(o.closest_distance_km, 2)} km apart ({o.proximity_tier}).
+                  {o.shareable}. The closest points of the two projects are {fmtDistance(o.closest_distance_mi)} apart ({o.proximity_tier}).
                 </p>
               </div>
 
@@ -134,7 +141,7 @@ export default function Overlap() {
                     {o.build_windows_overlap ? 'Build windows overlap' : 'Build windows don’t overlap'}
                   </Pill>
                 </div>
-                <Timeline projects={[o.project_a, o.project_b]} colors={utils.colors} />
+                <Timeline projects={[o.project_a ?? o.a, o.project_b ?? o.b]} colors={utils.colors} />
                 <p className="mt-4 text-[12.5px] text-fg-dim">
                   {fmtGap(o.in_service_gap_days)} between in-service dates.{' '}
                   {o.either_already_in_service && 'At least one project’s in-service date has already passed, so this may be a lesson for the next project rather than a live opportunity.'}
@@ -145,7 +152,7 @@ export default function Overlap() {
                 <h2 className="mb-1 text-[15px] font-bold">Shared right-of-way estimate</h2>
                 {o.shared_row_acres_upper_bound === null ? (
                   <p className="text-[12.5px] leading-relaxed text-fg-dim">
-                    Only computed when both projects are lines within 1.6 km of each other (they could share a corridor). This pair doesn’t qualify, so the value
+                    Only computed when both projects are lines within 1 mi of each other (they could share a corridor). This pair doesn’t qualify, so the value
                     here is shared crews and logistics rather than land.
                   </p>
                 ) : (
@@ -182,7 +189,7 @@ export default function Overlap() {
 
         {/* Inset map */}
         <aside className="flex h-[440px] flex-col border-ink-500 lg:sticky lg:top-0 lg:h-[calc(100vh-4rem)] lg:w-[440px] lg:shrink-0 lg:border-l">
-          <MapView className="min-h-0 flex-1" projects={pairFc} overlaps={pairOverlaps} colors={utils.colors} highlight={o ? [projectKey(o.a), projectKey(o.b)] : []} fit={fit} fitOptions={{ padding: 70, maxZoom: 13 }}>
+          <MapView className="min-h-0 flex-1" projects={pairFc} overlaps={pairOverlaps} colors={utils.colors} highlight={o ? [projectKey(o.project_a ?? o.a), projectKey(o.project_b ?? o.b)] : []} fit={fit} fitOptions={{ padding: 70, maxZoom: 13 }}>
             {({ startOrbit, stopOrbit, orbiting, fitBounds }) =>
               o && (
                 <div className="absolute left-3 top-3 z-10 flex gap-2">

@@ -23,6 +23,12 @@ export const fmtNum = (n, digits = 0) =>
 export const fmtUsd = (n) =>
   n === null || n === undefined ? '—' : Number(n).toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
 
+export function fmtDistance(mi) {
+  if (mi == null || Number.isNaN(mi)) return '—'
+  if (mi < 0.25) return `${Math.round(mi * 5280).toLocaleString()} ft`
+  return `${fmtNum(mi, 2)} mi`
+}
+
 export function fmtGap(days) {
   if (days === null || days === undefined) return 'Gap unknown'
   if (days < 60) return `${days}-day gap`
@@ -39,7 +45,11 @@ export function fmtWindow(w) {
   return a === b ? a : `${a} – ${b}`
 }
 
-export const yearOf = (iso) => (iso ? Number(String(iso).slice(0, 4)) : null)
+export const yearOf = (iso) => {
+  if (!iso) return null
+  const n = Number(String(iso).slice(0, 4))
+  return Number.isNaN(n) ? null : n
+}
 
 /** Remove the "SAV:" / "GTC:" sponsor prefixes GPC titles carry, and tidy all-caps names. */
 export function tidyName(name = '') {

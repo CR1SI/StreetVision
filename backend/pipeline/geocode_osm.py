@@ -69,13 +69,15 @@ def norm(name) -> str:
 
 def fetch():
     if "--offline" in sys.argv:
-        return json.load(open(CACHE))
+        with open(CACHE, encoding="utf-8") as f:
+            return json.load(f)
     body = urllib.parse.urlencode({"data": QUERY}).encode()
     req = urllib.request.Request(OVERPASS, data=body, headers={"User-Agent": "gridlock-challenge"})
     with urllib.request.urlopen(req, timeout=240) as r:
         result = json.load(r)
     os.makedirs(os.path.dirname(CACHE), exist_ok=True)
-    json.dump(result, open(CACHE, "w"))
+    with open(CACHE, "w", encoding="utf-8") as f:
+        json.dump(result, f)
     return result
 
 

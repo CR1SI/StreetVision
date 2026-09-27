@@ -64,7 +64,7 @@ export function MapView({ projects, overlaps, colors, highlight = [], fit, fitOp
         const raw = f.properties.center
         const p = { ...f.properties, center: typeof raw === 'string' ? JSON.parse(raw) : raw }
         const involved = (overlapsRef.current ?? []).filter(
-          (o) => o.overlap_id !== undefined && [projectKey(o.a), projectKey(o.b)].includes(projectKey(p)),
+          (o) => o.overlap_id !== undefined && [projectKey(o.project_a ?? o.a), projectKey(o.project_b ?? o.b)].includes(projectKey(p)),
         )
         popup.setLngLat(e.lngLat).setHTML(projectPopup(p, colorsRef.current ?? {}, involved)).addTo(map)
       } else clickRef.current?.(e.lngLat, map)

@@ -11,7 +11,7 @@ import { useMapLibre } from '../hooks/useMapLibre'
 import { useUtilities } from '../hooks/useUtilities'
 import { api } from '../lib/api'
 import { PALETTE, TIERS } from '../lib/colors'
-import { fmtDate, fmtGap, fmtNum, fmtUsd, fmtWindow, tidyName } from '../lib/format'
+import { fmtDate, fmtDistance, fmtGap, fmtNum, fmtUsd, fmtWindow, tidyName } from '../lib/format'
 import { bounds, connectorsToGeoJSON, midpoint, overlapKey } from '../lib/geo'
 import { drawConnectors, drawProjects, projectKey, selectFeature, setColumns } from '../lib/mapLayers'
 import { esc, nearPopup, projectPopup } from '../lib/popups'
@@ -116,9 +116,15 @@ export default function Home() {
   }, [radiusDraft]) // eslint-disable-line react-hooks/exhaustive-deps
   const toggleUtility = (id) => {
     const all = utils.list.map((u) => u.utility_id)
-    const current = filters.utilities.length ? filters.utilities : all
-    let next = current.includes(id) ? current.filter((x) => x !== id) : [...current, id]
-    if (next.length === 0 || next.length === all.length) next = [] // none or all = no filter
+    let next
+    if (!filters.utilities.length) {
+      next = [id]
+    } else {
+      next = filters.utilities.includes(id)
+        ? filters.utilities.filter((x) => x !== id)
+        : [...filters.utilities, id]
+    }
+    if (next.length === all.length) next = []
     update({ utilities: next })
   }
   const isOn = (id) => !filters.utilities.length || filters.utilities.includes(id)
@@ -574,7 +580,7 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
 
         <div className="my-4 grid grid-cols-2 gap-2.5">
           <Fact value={`${fmtNum(o.center_distance_mi, 2)} mi`} label="Center distance" />
-          <Fact value={`${fmtNum(o.closest_distance_km, 2)} km`} label="Closest points" />
+          <Fact value={fmtDistance(o.closest_distance_mi)} label="Closest points" />
           <Fact value={o.in_service_gap_days === null ? '—' : fmtNum(o.in_service_gap_days)} label="Days between in-service" />
           {live ? <Fact value="—" label="Confidence (stored list only)" /> : <Fact value={<ConfidenceBadge level={o.location_confidence} suffix={false} />} label="Location confidence" />}
         </div>

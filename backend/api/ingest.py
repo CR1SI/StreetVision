@@ -18,6 +18,7 @@ from shapely import wkt as shapely_wkt
 from shapely.geometry import LineString, Point
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
+from sqlalchemy.exc import IntegrityError
 
 from api.models import STANDARD_COLUMNS, ProjectIn, RowError
 
@@ -137,16 +138,22 @@ def ingest(conn: Connection, rows: list[dict], *, utility_id: str, utility_name:
         params.append({**p.model_dump(exclude={"geometry_wkt", "lat_a", "lon_a", "lat_b", "lon_b", "source_name"}),
                        "dataset_id": dataset_id, "name_a": p.endpoint_a, "name_b": p.endpoint_b,
                        "geom": geom.wkt, "clon": center[0], "clat": center[1]})
-    conn.execute(text("""
-        INSERT INTO projects (utility_id, project_id, dataset_id, name, description, status, region, kv,
-                              in_service_date, in_service_date_updated, build_start, build_end,
-                              location_confidence, is_override, confidence_note, corridor_group,
-                              name_a, name_b, geom, center)
-        VALUES (:utility_id, :project_id, :dataset_id, :name, :description, :status, :region, :kv,
-                :in_service_date, :in_service_date_updated, :build_start, :build_end,
-                :location_confidence, :is_override, :confidence_note, :corridor_group,
-                :name_a, :name_b, ST_GeomFromText(:geom, 4326), ST_SetSRID(ST_MakePoint(:clon, :clat), 4326))"""),
-        params)
+    try:
+        conn.execute(text("""
+            INSERT INTO projects (utility_id, project_id, dataset_id, name, description, status, region, kv,
+                                  in_service_date, in_service_date_updated, build_start, build_end,
+                                  location_confidence, is_override, confidence_note, corridor_group,
+                                  name_a, name_b, geom, center)
+            VALUES (:utility_id, :project_id, :dataset_id, :name, :description, :status, :region, :kv,
+                    :in_service_date, :in_service_date_updated, :build_start, :build_end,
+                    :location_confidence, :is_override, :confidence_note, :corridor_group,
+                    :name_a, :name_b, ST_GeomFromText(:geom, 4326), ST_SetSRID(ST_MakePoint(:clon, :clat), 4326))"""),
+            params)
+    except IntegrityError as exc:
+        raise IngestError(
+            f"A concurrent upload created a conflict: {exc.orig}",
+            status=409,
+        ) from None
 
     new = 0
     if compute:
@@ -159,7 +166,7 @@ def compute_overlaps(conn: Connection, dataset_id: int | None = None) -> int:
     """Store overlaps for pairs touching one dataset (or all pairs when dataset_id is None)."""
     return conn.execute(text("""
         INSERT INTO overlap_pairs (utility_a, project_id_a, utility_b, project_id_b, center_distance_mi,
-                                   closest_distance_km, proximity_tier, in_service_gap_days,
+                                   closest_distance_mi, proximity_tier, in_service_gap_days,
                                    build_windows_overlap, location_confidence, override_involved,
                                    score, shared_row_acres, connector)
         SELECT * FROM find_overlaps(:mi, :ds)

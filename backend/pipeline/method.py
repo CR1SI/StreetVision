@@ -29,7 +29,9 @@ def parse_date(raw):
         return None
     m, d, y = (int(x) for x in found[-1])
     y = y + 2000 if y < 100 else y
-    return date(y, m, min(d, calendar.monthrange(y, m)[1]))
+    if not (1 <= m <= 12):
+        return None
+    return date(y, m, max(1, min(d, calendar.monthrange(y, m)[1])))
 
 
 def haversine_mi(lat1, lon1, lat2, lon2):

@@ -23,6 +23,7 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, Query, UploadFil
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from sqlalchemy import text
 
 from api.db import engine
@@ -36,8 +37,8 @@ CONF_LEVELS = ["none", "low", "medium", "high"]
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 SHAREABLE = {
     "touching/crossing": "Coordinate outages and crossing structures",
-    "under 1.6 km": "Share right-of-way, access roads, permits",
-    "under 8 km": "Share laydown yards, deliveries, site logistics",
+    "under 1 mi": "Share right-of-way, access roads, permits",
+    "under 5 mi": "Share laydown yards, deliveries, site logistics",
     "under 25 mi": "Share crews, cranes, contractors",
 }
 
@@ -120,7 +121,7 @@ def overlap_out(r, rank: int, land_cost: Optional[float]) -> OverlapOut:
                      in_service_date=r["isd_a"], build_window=window(r["bs_a"], r["be_a"]), source_kind=r["kind_a"]),
         b=ProjectRef(utility_id=r["utility_b"], project_id=r["project_id_b"], name=r["name_b"],
                      in_service_date=r["isd_b"], build_window=window(r["bs_b"], r["be_b"]), source_kind=r["kind_b"]),
-        center_distance_mi=round(r["center_distance_mi"], 2), closest_distance_km=round(r["closest_distance_km"], 2),
+        center_distance_mi=round(r["center_distance_mi"], 2), closest_distance_mi=round(r["closest_distance_mi"], 2),
         proximity_tier=r["proximity_tier"], shareable=SHAREABLE.get(r["proximity_tier"], ""),
         in_service_gap_days=r["in_service_gap_days"], build_windows_overlap=r["build_windows_overlap"],
         either_already_in_service=r["either_already_in_service"], location_confidence=r["location_confidence"],
@@ -176,7 +177,7 @@ def projects(utilities: Optional[str] = Query(None, description="Comma-separated
         rows = conn.execute(sql, {"utils": utility_list(utilities), "kinds": kinds(source),
                                   "conf": allowed(min_confidence), "hide": hide_in_service}).mappings().all()
     return {"type": "FeatureCollection", "features": [
-        {"type": "Feature", "geometry": json.loads(r["geometry"]),
+        {"type": "Feature", "geometry": json.loads(r["geometry"] or "null"),
          "properties": project_out(r).model_dump(mode="json")} for r in rows]}
 
 
@@ -221,7 +222,7 @@ def overlaps_live(max_distance_mi: float = Query(25, gt=0, le=100),
                      in_service_date=r["isd_a"], build_window=window(r["bs_a"], r["be_a"]), source_kind=r["kind_a"]),
         b=ProjectRef(utility_id=r["utility_b"], project_id=r["project_id_b"], name=r["name_b"],
                      in_service_date=r["isd_b"], build_window=window(r["bs_b"], r["be_b"]), source_kind=r["kind_b"]),
-        center_distance_mi=round(r["center_distance_mi"], 2), closest_distance_km=round(r["closest_distance_km"], 2),
+        center_distance_mi=round(r["center_distance_mi"], 2), closest_distance_mi=round(r["closest_distance_mi"], 2),
         in_service_gap_days=r["in_service_gap_days"], score=r["score"],
         connector=[tuple(c) for c in json.loads(r["connector_json"])["coordinates"]]) for i, r in enumerate(rows)]
 
@@ -313,17 +314,23 @@ async def upload_dataset(
     content = await file.read(MAX_UPLOAD_BYTES + 1)
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(413, f"File over {MAX_UPLOAD_BYTES // (1024 * 1024)} MB")
-    rows = rows_from_csv(content)
-    token = secrets.token_urlsafe(24)
-    with engine.begin() as conn:
-        res = ingest(conn, rows, utility_id=utility_id, utility_name=utility_name, source_name=source_name,
-                     kind="user_submitted", submitted_by=submitted_by, notes=notes,
-                     public_attestation=public_attestation,
-                     delete_token_hash=hashlib.sha256(token.encode()).hexdigest())
-        ds = dataset_out(conn, res.dataset_id)
+
+    def _do_ingest():
+        rows = rows_from_csv(content)
+        token = secrets.token_urlsafe(24)
+        with engine.begin() as conn:
+            res = ingest(conn, rows, utility_id=utility_id, utility_name=utility_name,
+                         source_name=source_name, kind="user_submitted",
+                         submitted_by=submitted_by, notes=notes,
+                         public_attestation=public_attestation,
+                         delete_token_hash=hashlib.sha256(token.encode()).hexdigest())
+            ds = dataset_out(conn, res.dataset_id)
+        return token, res, ds
+
+    token, res, ds = await run_in_threadpool(_do_ingest)
     return UploadReport(dataset=ds, delete_token=token, rows_received=res.rows_received,
-                        rows_accepted=res.rows_accepted, rows_rejected=len(res.errors), errors=res.errors,
-                        new_overlaps=res.new_overlaps)
+                        rows_accepted=res.rows_accepted, rows_rejected=len(res.errors),
+                        errors=res.errors, new_overlaps=res.new_overlaps)
 
 
 @app.delete("/api/datasets/{dataset_id}")

@@ -38,7 +38,7 @@ OVERLAPS_SQL = """
     SELECT 'OVL_' || row_number() OVER (ORDER BY o.score DESC, o.center_distance_mi) AS overlap_label,
            o.utility_a, o.project_id_a, pa.name AS name_a, o.utility_b, o.project_id_b, pb.name AS name_b,
            round(o.center_distance_mi::numeric, 2)::float AS center_distance_mi,
-           round(o.closest_distance_km::numeric, 2)::float AS closest_distance_km, o.proximity_tier,
+           round(o.closest_distance_mi::numeric, 2)::float AS closest_distance_mi, o.proximity_tier,
            o.in_service_gap_days, o.build_windows_overlap, o.location_confidence, o.override_involved,
            o.score, o.shared_row_acres, ST_AsGeoJSON(o.connector) AS geometry
     FROM overlap_pairs o
@@ -54,7 +54,7 @@ OVERLAPS_SQL = """
 def feature_collection(df: pd.DataFrame) -> dict:
     feats = []
     for rec in df.to_dict("records"):
-        geom = json.loads(rec.pop("geometry"))
+        geom = json.loads(rec.pop("geometry") or "null")
         feats.append({"type": "Feature", "geometry": geom,
                       "properties": {k: (None if pd.isna(v) else (str(v) if hasattr(v, "isoformat") else v))
                                      for k, v in rec.items()}})
@@ -67,9 +67,9 @@ def main():
         projects = pd.DataFrame(conn.execute(text(PROJECTS_SQL), {"official_only": official_only}).mappings().all())
         overlaps = pd.DataFrame(conn.execute(text(OVERLAPS_SQL), {"official_only": official_only}).mappings().all())
 
-    (OUT / "projects.geojson").write_text(json.dumps(feature_collection(projects.copy())))
-    (OUT / "overlaps.geojson").write_text(json.dumps(feature_collection(overlaps.copy())))
-    overlaps.drop(columns="geometry").to_csv(OUT / "overlaps.csv", index=False)
+    (OUT / "projects.geojson").write_text(json.dumps(feature_collection(projects.copy())), encoding="utf-8")
+    (OUT / "overlaps.geojson").write_text(json.dumps(feature_collection(overlaps.copy())), encoding="utf-8")
+    overlaps.drop(columns="geometry", errors="ignore").to_csv(OUT / "overlaps.csv", index=False)
 
     # organizers' workbook: each project lists the overlaps it takes part in
     members = {}
@@ -77,14 +77,14 @@ def main():
         members.setdefault((o.utility_a, o.project_id_a), []).append(o.overlap_label)
         members.setdefault((o.utility_b, o.project_id_b), []).append(o.overlap_label)
     width = max((len(v) for v in members.values()), default=0)
-    sheet = projects.drop(columns="geometry").copy()
+    sheet = projects.drop(columns="geometry", errors="ignore").copy()
     ids = [members.get(k, []) for k in zip(sheet.utility_id, sheet.project_id)]
     sheet["overlap_count"] = [len(x) for x in ids]
     for i in range(width):
         sheet[f"overlap_{i + 1}"] = [x[i] if i < len(x) else None for x in ids]
     with pd.ExcelWriter(OUT / "projects_overlaps.xlsx") as xl:
         sheet.to_excel(xl, sheet_name="projects", index=False)
-        overlaps.drop(columns="geometry").to_excel(xl, sheet_name="overlaps", index=False)
+        overlaps.drop(columns="geometry", errors="ignore").to_excel(xl, sheet_name="overlaps", index=False)
 
     print(f"exported {len(projects)} projects, {len(overlaps)} overlaps"
           f"{' (official only)' if official_only else ''} -> {OUT}")

@@ -19,7 +19,7 @@ const ASSUMPTIONS = [
   'The DESC 2024–2028 edition is the baseline; newer-edition dates are kept alongside as “updated” dates.',
   'Impossible dates in the DESC filing (e.g. 04/31/26) are clamped to month end.',
   'Georgia Power + SAV sponsors = Georgia Power (SAV is the former Savannah Electric); GTC, MEAG and DU projects are excluded.',
-  'Shared right-of-way = shorter line × 100 ft corridor × a land cost per acre: an upper bound, only for two lines within 1.6 km.',
+  'Shared right-of-way = shorter line × 100 ft corridor × a land cost per acre: an upper bound, only for two lines within 1 mi.',
   'Low-confidence OpenStreetMap matches are flagged; substations not in OSM are placed by hand and marked as such.',
   'Only public filings are used: no Critical Energy Infrastructure Information (CEII), and redacted costs are never estimated.',
   'Community-submitted data is labeled everywhere and can be filtered out with Source → Official filings.',

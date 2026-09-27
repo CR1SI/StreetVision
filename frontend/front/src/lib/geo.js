@@ -4,8 +4,11 @@ export const midpoint = ([a, b]) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
 
 /** Stable key for an overlap. Live (radius > 25 mi) results have no overlap_id, so key them by the pair,
  *  never by rank: rank changes whenever the filters do. */
-export const overlapKey = (o) =>
-  o.overlap_id ?? `live:${o.a.utility_id}|${o.a.project_id}~${o.b.utility_id}|${o.b.project_id}`
+export const overlapKey = (o) => {
+  const a = o.project_a ?? o.a
+  const b = o.project_b ?? o.b
+  return o.overlap_id ?? `live:${a.utility_id}|${a.project_id}~${b.utility_id}|${b.project_id}`
+}
 
 /** Walk any GeoJSON geometry and yield [lon, lat] pairs. */
 function* coords(geom) {
