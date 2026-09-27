@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
   // Load .env, .env.local etc. Machine-specific overrides (e.g. VITE_API_PORT=9000)
   // belong in .env.local which is gitignored — teammates are never affected.
   const env = loadEnv(mode, resolve(__dirname, '../..'), '')
-  const apiPort = env.VITE_API_PORT ?? '8001'
+  const apiPort = env.VITE_API_PORT ?? '8000'
 
   return {
     plugins: [react()],
