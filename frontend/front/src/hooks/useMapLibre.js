@@ -97,6 +97,8 @@ export function useMapLibre(containerRef, options = {}) {
     orbitToken.current += 1
     if (orbitRef.current) cancelAnimationFrame(orbitRef.current)
     orbitRef.current = null
+    const map = mapRef.current
+    if (map?.scrollZoom) map.scrollZoom._aroundCenter = false
     setOrbiting(false)
   }, [])
 
@@ -120,21 +122,24 @@ export function useMapLibre(containerRef, options = {}) {
     [stopOrbit],
   )
 
-  // Fly to a point, tilt the camera, then rotate slowly around it until the user touches the map.
+  // Fly to a point, tilt the camera, then rotate slowly around it. The user can zoom in/out while orbiting.
   const startOrbit = useCallback(
     (center, zoom = 11.5) => {
       const map = mapRef.current
       if (!map) return
       stopOrbit()
       const token = orbitToken.current
+      if (map.scrollZoom) map.scrollZoom._aroundCenter = true
       map.flyTo({ center, zoom, pitch: 55, speed: 1.3, curve: 1.3, essential: true })
       const begin = () => {
         if (token !== orbitToken.current) return // superseded or stopped before the flight ended
         let bearing = map.getBearing()
         const step = () => {
           if (!mapRef.current) return
-          bearing = (bearing + 0.12) % 360
-          map.setBearing(bearing)
+          if (!map.isZooming()) {
+            bearing = (bearing + 0.12) % 360
+            map.setBearing(bearing)
+          }
           orbitRef.current = requestAnimationFrame(step)
         }
         orbitRef.current = requestAnimationFrame(step)
@@ -142,9 +147,7 @@ export function useMapLibre(containerRef, options = {}) {
       }
       map.once('moveend', begin)
       const halt = () => token === orbitToken.current && stopOrbit()
-      map.once('mousedown', halt)
-      map.once('wheel', halt)
-      map.once('touchstart', halt)
+      map.once('dragstart', halt)
     },
     [stopOrbit],
   )
