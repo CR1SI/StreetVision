@@ -21,7 +21,7 @@ def _load_dotenv(path: Path = ROOT / ".env") -> None:
     """Minimal .env reader; real environment variables always win."""
     if not path.exists():
         return
-    for line in path.read_text().splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue

@@ -23,9 +23,9 @@ UTILITY_NAMES = {"DESC": "Dominion Energy South Carolina", "GPC": "Georgia Power
 def ensure_schema(conn, reset: bool):
     exists = conn.execute(text("SELECT to_regclass('public.projects') IS NOT NULL")).scalar()
     if reset or not exists:
-        conn.exec_driver_sql((ROOT / "db" / "schema.sql").read_text())
+        conn.exec_driver_sql((ROOT / "db" / "schema.sql").read_text(encoding="utf-8"))
         print("schema created" + (" (reset: user uploads removed)" if reset and exists else ""))
-    conn.exec_driver_sql((ROOT / "db" / "functions.sql").read_text())   # always refresh the engine
+    conn.exec_driver_sql((ROOT / "db" / "functions.sql").read_text(encoding="utf-8"))   # always refresh the engine
 
 
 def cross_check(conn) -> bool:
