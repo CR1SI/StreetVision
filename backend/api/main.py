@@ -4,7 +4,7 @@ FastAPI app: projects and overlaps for any number of utilities, plus dataset upl
 Run from the repo root:
     uvicorn api.main:app --reload
 Interactive docs: http://localhost:8000/docs
-If a frontend is added later at web/index.html, it is served at http://localhost:8000/ automatically.
+The built frontend (frontend/web, from `npm run build`) is served at http://localhost:8000/ automatically.
 
 Environment:
     DATABASE_URL  Postgres connection (default: local docker-compose database)
@@ -75,6 +75,7 @@ def kinds(source: Source) -> list[str]:
 
 PROJECT_SELECT = """
     SELECT p.utility_id, p.project_id, p.name, p.description, p.status, p.region, p.kv,
+           p.project_type, p.name_a AS endpoint_a, p.name_b AS endpoint_b,
            p.in_service_date, p.in_service_date_updated, p.build_start, p.build_end,
            p.location_confidence, p.is_override, p.confidence_note,
            COALESCE(p.in_service_date < current_date, false) AS in_service_passed,
@@ -86,8 +87,8 @@ PROJECT_SELECT = """
 # several -> pairs between them.
 OVERLAP_SELECT = """
     SELECT o.*, ST_AsGeoJSON(o.connector) AS connector_json,
-           pa.name AS name_a, pa.in_service_date AS isd_a, pa.build_start AS bs_a, pa.build_end AS be_a, da.kind AS kind_a,
-           pb.name AS name_b, pb.in_service_date AS isd_b, pb.build_start AS bs_b, pb.build_end AS be_b, db.kind AS kind_b,
+           pa.name AS name_a, pa.project_type AS type_a, pa.in_service_date AS isd_a, pa.build_start AS bs_a, pa.build_end AS be_a, da.kind AS kind_a,
+           pb.name AS name_b, pb.project_type AS type_b, pb.in_service_date AS isd_b, pb.build_start AS bs_b, pb.build_end AS be_b, db.kind AS kind_b,
            COALESCE(pa.in_service_date < current_date, false) OR COALESCE(pb.in_service_date < current_date, false)
                AS either_already_in_service
     FROM overlap_pairs o
@@ -117,9 +118,9 @@ def overlap_out(r, rank: int, land_cost: Optional[float]) -> OverlapOut:
     acres = r["shared_row_acres"]
     return OverlapOut(
         overlap_id=r["overlap_id"], rank=rank, label=f"OVL_{rank}",
-        a=ProjectRef(utility_id=r["utility_a"], project_id=r["project_id_a"], name=r["name_a"],
+        a=ProjectRef(utility_id=r["utility_a"], project_id=r["project_id_a"], name=r["name_a"], project_type=r["type_a"],
                      in_service_date=r["isd_a"], build_window=window(r["bs_a"], r["be_a"]), source_kind=r["kind_a"]),
-        b=ProjectRef(utility_id=r["utility_b"], project_id=r["project_id_b"], name=r["name_b"],
+        b=ProjectRef(utility_id=r["utility_b"], project_id=r["project_id_b"], name=r["name_b"], project_type=r["type_b"],
                      in_service_date=r["isd_b"], build_window=window(r["bs_b"], r["be_b"]), source_kind=r["kind_b"]),
         center_distance_mi=round(r["center_distance_mi"], 2), closest_distance_mi=round(r["closest_distance_mi"], 2),
         proximity_tier=r["proximity_tier"], shareable=SHAREABLE.get(r["proximity_tier"], ""),
@@ -218,9 +219,9 @@ def overlaps_live(max_distance_mi: float = Query(25, gt=0, le=100),
                                   "hide": hide_in_service, "limit": limit}).mappings().all()
     return [LiveOverlap(
         rank=i + 1,
-        a=ProjectRef(utility_id=r["utility_a"], project_id=r["project_id_a"], name=r["name_a"],
+        a=ProjectRef(utility_id=r["utility_a"], project_id=r["project_id_a"], name=r["name_a"], project_type=r["type_a"],
                      in_service_date=r["isd_a"], build_window=window(r["bs_a"], r["be_a"]), source_kind=r["kind_a"]),
-        b=ProjectRef(utility_id=r["utility_b"], project_id=r["project_id_b"], name=r["name_b"],
+        b=ProjectRef(utility_id=r["utility_b"], project_id=r["project_id_b"], name=r["name_b"], project_type=r["type_b"],
                      in_service_date=r["isd_b"], build_window=window(r["bs_b"], r["be_b"]), source_kind=r["kind_b"]),
         center_distance_mi=round(r["center_distance_mi"], 2), closest_distance_mi=round(r["closest_distance_mi"], 2),
         in_service_gap_days=r["in_service_gap_days"], score=r["score"],
@@ -364,6 +365,7 @@ def delete_dataset(dataset_id: int, x_delete_token: Optional[str] = Header(None)
     return {"deleted": dataset_id, "projects_removed": removed.p, "overlaps_removed": removed.o}
 
 
-# Optional frontend: mounted last so /api/* routes win. Skipped until web/index.html exists.
-if (ROOT / "web" / "index.html").exists():
-    app.mount("/", StaticFiles(directory=ROOT / "web", html=True), name="web")
+# Optional frontend: the built site (npm run build -> frontend/web), mounted last so /api/* routes win.
+WEB = next((d for d in (ROOT.parent / "frontend" / "web", ROOT / "web") if (d / "index.html").exists()), None)
+if WEB:
+    app.mount("/", StaticFiles(directory=WEB, html=True), name="web")

@@ -3,8 +3,8 @@ import maplibregl from 'maplibre-gl'
 import { WifiOff } from 'lucide-react'
 import { useMapLibre } from '../hooks/useMapLibre'
 import { connectorsToGeoJSON } from '../lib/geo'
-import { drawConnectors, drawProjects, projectKey } from '../lib/mapLayers'
-import { projectPopup } from '../lib/popups'
+import { drawConnectors, drawProjects, PROJECT_HIT_LAYERS, projectKey } from '../lib/mapLayers'
+import { projectPopup, substationPopup } from '../lib/popups'
 import { Spinner } from './ui'
 
 /**
@@ -24,7 +24,7 @@ export function MapView({ projects, overlaps, colors, highlight = [], fit, fitOp
   useEffect(() => {
     const map = mapRef.current
     if (!isLoaded || !map || !projects || !colors) return
-    drawProjects(map, projects, colors, { columns: false })
+    drawProjects(map, projects, colors)
     drawConnectors(map, connectorsToGeoJSON(overlaps ?? []))
     const prev = map.__svHighlight ?? []
     for (const k of prev) map.setFeatureState({ source: 'projects', id: k }, { selected: false })
@@ -54,12 +54,16 @@ export function MapView({ projects, overlaps, colors, highlight = [], fit, fitOp
     const map = mapRef.current
     if (!isLoaded || !map) return
     const popup = new maplibregl.Popup({ maxWidth: '300px', offset: 10 })
-    const layers = () => ['project-lines', 'project-points'].filter((l) => map.getLayer(l))
+    const layers = () => PROJECT_HIT_LAYERS.filter((l) => map.getLayer(l))
     const move = (e) => {
       map.getCanvas().style.cursor = popups && map.queryRenderedFeatures(e.point, { layers: layers() }).length ? 'pointer' : clickRef.current ? 'crosshair' : ''
     }
     const click = (e) => {
       const f = popups && map.queryRenderedFeatures(e.point, { layers: layers() })[0]
+      if (f?.layer.id === 'substations') {
+        popup.setLngLat(f.geometry.coordinates).setHTML(substationPopup(f.properties, colorsRef.current ?? {})).addTo(map)
+        return
+      }
       if (f) {
         const raw = f.properties.center
         const p = { ...f.properties, center: typeof raw === 'string' ? JSON.parse(raw) : raw }

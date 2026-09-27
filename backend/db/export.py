@@ -18,7 +18,7 @@ from api.db import engine
 OUT = Path(__file__).resolve().parent.parent / "data" / "processed"
 
 PROJECTS_SQL = """
-    SELECT p.utility_id, p.project_id, p.name AS project_name, p.name_a, p.name_b,
+    SELECT p.utility_id, p.project_id, p.name AS project_name, p.project_type, p.name_a, p.name_b,
            ST_Y(f.pa) AS lat_a, ST_X(f.pa) AS lon_a, ST_Y(f.pb) AS lat_b, ST_X(f.pb) AS lon_b,
            ST_Y(p.center) AS lat_center, ST_X(p.center) AS lon_center,
            p.in_service_date, p.location_confidence, d.kind AS source_kind,

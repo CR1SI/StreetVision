@@ -37,7 +37,10 @@ def test_health_and_utilities():
 def test_projects_is_geojson():
     fc = client.get("/api/projects").json()
     assert fc["type"] == "FeatureCollection" and fc["features"]
-    assert {"utility_id", "project_id", "center", "source_kind"} <= set(fc["features"][0]["properties"])
+    assert {"utility_id", "project_id", "center", "source_kind", "project_type", "endpoint_a"} <= set(fc["features"][0]["properties"])
+    types = {f["properties"]["project_type"] for f in fc["features"]}
+    assert types <= {"line_rebuild", "new_line", "substation", "area_package", "other"} and len(types) > 1
+    assert all("project_type" in o["a"] for o in client.get("/api/overlaps?limit=5").json())
 
 
 def test_overlaps_ranked_and_filtered():

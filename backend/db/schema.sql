@@ -48,6 +48,8 @@ CREATE TABLE projects (
     is_override             BOOLEAN NOT NULL DEFAULT false,
     confidence_note         TEXT,
     corridor_group          TEXT,
+    project_type            TEXT NOT NULL DEFAULT 'other'
+                            CHECK (project_type IN ('line_rebuild', 'new_line', 'substation', 'area_package', 'other')),
     name_a                  TEXT,
     name_b                  TEXT,
     geom                    GEOMETRY(Geometry, 4326) NOT NULL

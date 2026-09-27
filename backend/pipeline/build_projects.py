@@ -19,6 +19,7 @@ from pydantic import ValidationError
 from shapely.geometry import LineString, MultiLineString, MultiPoint, Point
 
 from api.models import STANDARD_COLUMNS, ProjectIn
+from api.project_types import classify
 from pipeline.method import parse_date
 
 OUT = "data/processed/projects_standard.csv"
@@ -134,6 +135,7 @@ def build(dates_mode="baseline"):
             "confidence_note": note, "is_override": is_override,
             "corridor_group": s(getattr(r, "corridor_group", None)),
             "source_name": source_names[r.utility],
+            "project_type": classify(r.name, r.description),
         }
         try:
             ProjectIn(**rec)                       # same validation a user upload gets

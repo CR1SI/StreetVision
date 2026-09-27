@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from shapely import wkt as shapely_wkt
 
 Confidence = Literal["high", "medium", "low", "none"]
+ProjectType = Literal["line_rebuild", "new_line", "substation", "area_package", "other"]
 UTILITY_ID_PATTERN = r"^[A-Z][A-Z0-9_]{1,15}$"
 
 
@@ -72,7 +73,7 @@ STANDARD_COLUMNS = [
     "in_service_date", "in_service_date_updated", "build_start", "build_end",
     "endpoint_a", "lat_a", "lon_a", "endpoint_b", "lat_b", "lon_b", "geometry_wkt",
     "region", "location_confidence", "confidence_note", "is_override", "corridor_group",
-    "source_name",
+    "source_name", "project_type",
 ]
 
 
@@ -106,6 +107,7 @@ class ProjectIn(BaseModel):
     is_override: bool = False
     corridor_group: Optional[str] = Field(None, max_length=200)
     source_name: Optional[str] = Field(None, max_length=200)   # only used by the batch loader
+    project_type: Optional[ProjectType] = None   # blank = classified from name/description (api/project_types.py)
 
     @field_validator("*", mode="before")
     @classmethod
@@ -199,6 +201,9 @@ class ProjectOut(BaseModel):
     in_service_date_updated: date | None = None
     build_start: int | None = None
     build_end: int | None = None
+    project_type: ProjectType = "other"
+    endpoint_a: str | None = None           # substation names at the line ends
+    endpoint_b: str | None = None
     location_confidence: Confidence
     is_override: bool
     confidence_note: str | None = None
@@ -213,6 +218,7 @@ class ProjectRef(BaseModel):
     utility_id: str
     project_id: str
     name: str
+    project_type: ProjectType = "other"
     in_service_date: date | None = None
     build_window: str | None = None
     source_kind: Literal["official", "user_submitted"]

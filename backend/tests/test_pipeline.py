@@ -81,3 +81,17 @@ def test_answer_key_checker_catches_a_missing_overlap(tmp_path):
     path = tmp_path / "tampered.xlsx"
     build(path, drop_one=True)
     assert not check_key(path)
+
+
+# ---------------------------------------------------------------- project types
+
+def test_project_types():
+    from api.project_types import classify
+    assert classify("SAV: GOSHEN (SAV) - MCINTOSH 115KV LINE REBUILD") == "line_rebuild"
+    assert classify("Okatie – McIntosh 115kV Tie: Add Series Reactor") == "substation"          # reactor beats line
+    assert classify("Jasper – Okatie 230 kV #2: Construct") == "new_line"
+    assert classify("Riverport Tap: Construct Tap") == "new_line"
+    assert classify("GOSHEN AREA STRATEGIC SOLUTION") == "area_package"
+    assert classify("St George - Sumter 230kV Tie: Rebuild Line from Santee Substation") == "line_rebuild"
+    assert classify("Queensboro - Ft Johnson 115 kV", "Replace the line and structures") == "line_rebuild"  # description fallback
+    assert classify("Mystery project") == "other"

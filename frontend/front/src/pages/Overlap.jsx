@@ -11,6 +11,7 @@ import { CONFIDENCE, tierColor } from '../lib/colors'
 import { fmtDate, fmtDistance, fmtGap, fmtNum, fmtUsd, tidyName } from '../lib/format'
 import { bounds, midpoint } from '../lib/geo'
 import { projectKey } from '../lib/mapLayers'
+import { TypeIcon, typeLabel } from '../lib/projectTypes'
 
 const DEFAULT_LAND_COST = 10000
 
@@ -222,6 +223,10 @@ function ProjectCard({ p, colors, name }) {
       <h3 className="mb-2 font-sans text-[15px] font-bold leading-snug">{tidyName(p.name)}</h3>
       {p.description && <p className="mb-4 text-[12.5px] leading-relaxed text-fg-dim">{p.description}</p>}
       <div className="space-y-1.5">
+        <Row label="Type">
+          <span className="inline-flex items-center gap-1.5"><TypeIcon type={p.project_type} className="h-3.5 w-3.5 text-fg-dim" />{typeLabel(p.project_type)}</span>
+        </Row>
+        {(p.endpoint_a || p.endpoint_b) && <Row label="Substations">{[p.endpoint_a, p.endpoint_b].filter(Boolean).join(' – ')}</Row>}
         <Row label="In service">{fmtDate(p.in_service_date)}</Row>
         {p.in_service_date_updated && p.in_service_date_updated !== p.in_service_date && <Row label="Updated (newer edition)">{fmtDate(p.in_service_date_updated)}</Row>}
         <Row label="Build window">{p.build_start || p.build_end ? `${p.build_start ?? '?'} – ${p.build_end ?? '?'}` : 'Not published'}</Row>
