@@ -166,7 +166,7 @@ def compute_overlaps(conn: Connection, dataset_id: int | None = None) -> int:
     """Store overlaps for pairs touching one dataset (or all pairs when dataset_id is None)."""
     return conn.execute(text("""
         INSERT INTO overlap_pairs (utility_a, project_id_a, utility_b, project_id_b, center_distance_mi,
-                                   closest_distance_km, proximity_tier, in_service_gap_days,
+                                   closest_distance_mi, proximity_tier, in_service_gap_days,
                                    build_windows_overlap, location_confidence, override_involved,
                                    score, shared_row_acres, connector)
         SELECT * FROM find_overlaps(:mi, :ds)

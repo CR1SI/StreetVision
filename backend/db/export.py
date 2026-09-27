@@ -38,7 +38,7 @@ OVERLAPS_SQL = """
     SELECT 'OVL_' || row_number() OVER (ORDER BY o.score DESC, o.center_distance_mi) AS overlap_label,
            o.utility_a, o.project_id_a, pa.name AS name_a, o.utility_b, o.project_id_b, pb.name AS name_b,
            round(o.center_distance_mi::numeric, 2)::float AS center_distance_mi,
-           round(o.closest_distance_km::numeric, 2)::float AS closest_distance_km, o.proximity_tier,
+           round(o.closest_distance_mi::numeric, 2)::float AS closest_distance_mi, o.proximity_tier,
            o.in_service_gap_days, o.build_windows_overlap, o.location_confidence, o.override_involved,
            o.score, o.shared_row_acres, ST_AsGeoJSON(o.connector) AS geometry
     FROM overlap_pairs o

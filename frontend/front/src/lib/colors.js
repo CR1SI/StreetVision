@@ -40,8 +40,8 @@ export function colorFor(colors, utilityId) {
 // Keys match the API's proximity_tier strings exactly.
 export const TIERS = [
   { key: 'touching/crossing', label: 'Touching / crossing', color: PALETTE.pink, share: 'Coordinate outages and crossing structures' },
-  { key: 'under 1.6 km', label: 'Under 1.6 km', color: PALETTE.orange, share: 'Share right-of-way, access roads, permits' },
-  { key: 'under 8 km', label: 'Under 8 km', color: PALETTE.amber, share: 'Share laydown yards, deliveries, site logistics' },
+  { key: 'under 1 mi', label: 'Under 1 mi', color: PALETTE.orange, share: 'Share right-of-way, access roads, permits' },
+  { key: 'under 5 mi', label: 'Under 5 mi', color: PALETTE.amber, share: 'Share laydown yards, deliveries, site logistics' },
   { key: 'under 25 mi', label: 'Under 25 mi', color: PALETTE.sky, share: 'Share crews, cranes, contractors' },
 ]
 export const TIER_BY_KEY = Object.fromEntries(TIERS.map((t) => [t.key, t]))

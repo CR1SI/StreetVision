@@ -225,7 +225,7 @@ class OverlapOut(BaseModel):
     a: ProjectRef
     b: ProjectRef
     center_distance_mi: float
-    closest_distance_km: float
+    closest_distance_mi: float
     proximity_tier: str
     shareable: str
     in_service_gap_days: int | None = None
@@ -259,7 +259,7 @@ class LiveOverlap(BaseModel):
     a: ProjectRef
     b: ProjectRef
     center_distance_mi: float
-    closest_distance_km: float
+    closest_distance_mi: float
     in_service_gap_days: int | None = None
     score: float
     connector: list[tuple[float, float]]

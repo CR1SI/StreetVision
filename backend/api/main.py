@@ -37,8 +37,8 @@ CONF_LEVELS = ["none", "low", "medium", "high"]
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 SHAREABLE = {
     "touching/crossing": "Coordinate outages and crossing structures",
-    "under 1.6 km": "Share right-of-way, access roads, permits",
-    "under 8 km": "Share laydown yards, deliveries, site logistics",
+    "under 1 mi": "Share right-of-way, access roads, permits",
+    "under 5 mi": "Share laydown yards, deliveries, site logistics",
     "under 25 mi": "Share crews, cranes, contractors",
 }
 
@@ -121,7 +121,7 @@ def overlap_out(r, rank: int, land_cost: Optional[float]) -> OverlapOut:
                      in_service_date=r["isd_a"], build_window=window(r["bs_a"], r["be_a"]), source_kind=r["kind_a"]),
         b=ProjectRef(utility_id=r["utility_b"], project_id=r["project_id_b"], name=r["name_b"],
                      in_service_date=r["isd_b"], build_window=window(r["bs_b"], r["be_b"]), source_kind=r["kind_b"]),
-        center_distance_mi=round(r["center_distance_mi"], 2), closest_distance_km=round(r["closest_distance_km"], 2),
+        center_distance_mi=round(r["center_distance_mi"], 2), closest_distance_mi=round(r["closest_distance_mi"], 2),
         proximity_tier=r["proximity_tier"], shareable=SHAREABLE.get(r["proximity_tier"], ""),
         in_service_gap_days=r["in_service_gap_days"], build_windows_overlap=r["build_windows_overlap"],
         either_already_in_service=r["either_already_in_service"], location_confidence=r["location_confidence"],
@@ -222,7 +222,7 @@ def overlaps_live(max_distance_mi: float = Query(25, gt=0, le=100),
                      in_service_date=r["isd_a"], build_window=window(r["bs_a"], r["be_a"]), source_kind=r["kind_a"]),
         b=ProjectRef(utility_id=r["utility_b"], project_id=r["project_id_b"], name=r["name_b"],
                      in_service_date=r["isd_b"], build_window=window(r["bs_b"], r["be_b"]), source_kind=r["kind_b"]),
-        center_distance_mi=round(r["center_distance_mi"], 2), closest_distance_km=round(r["closest_distance_km"], 2),
+        center_distance_mi=round(r["center_distance_mi"], 2), closest_distance_mi=round(r["closest_distance_mi"], 2),
         in_service_gap_days=r["in_service_gap_days"], score=r["score"],
         connector=[tuple(c) for c in json.loads(r["connector_json"])["coordinates"]]) for i, r in enumerate(rows)]
 

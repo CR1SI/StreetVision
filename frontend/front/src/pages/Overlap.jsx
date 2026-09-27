@@ -8,7 +8,7 @@ import { param, useAsync } from '../hooks/useAsync'
 import { useUtilities } from '../hooks/useUtilities'
 import { api } from '../lib/api'
 import { CONFIDENCE, tierColor } from '../lib/colors'
-import { fmtDate, fmtGap, fmtNum, fmtUsd, tidyName } from '../lib/format'
+import { fmtDate, fmtDistance, fmtGap, fmtNum, fmtUsd, tidyName } from '../lib/format'
 import { bounds, midpoint } from '../lib/geo'
 import { projectKey } from '../lib/mapLayers'
 
@@ -118,7 +118,7 @@ export default function Overlap() {
 
               <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
                 <Stat value={`${fmtNum(o.center_distance_mi, 2)} mi`} label="Center distance (official)" />
-                <Stat value={`${fmtNum(o.closest_distance_km, 2)} km`} label="Closest points" />
+                <Stat value={fmtDistance(o.closest_distance_mi)} label="Closest points" />
                 <Stat value={o.in_service_gap_days === null ? '—' : fmtNum(o.in_service_gap_days)} label="Days between in-service" />
                 <Stat value={CONFIDENCE[o.location_confidence]?.label} label="Location confidence" tone={CONFIDENCE[o.location_confidence]?.fg} />
               </div>
@@ -129,7 +129,7 @@ export default function Overlap() {
                   What could be shared
                 </div>
                 <p className="text-[13px] text-fg/90">
-                  {o.shareable}. The closest points of the two projects are {fmtNum(o.closest_distance_km, 2)} km apart ({o.proximity_tier}).
+                  {o.shareable}. The closest points of the two projects are {fmtDistance(o.closest_distance_mi)} apart ({o.proximity_tier}).
                 </p>
               </div>
 
@@ -152,7 +152,7 @@ export default function Overlap() {
                 <h2 className="mb-1 text-[15px] font-bold">Shared right-of-way estimate</h2>
                 {o.shared_row_acres_upper_bound === null ? (
                   <p className="text-[12.5px] leading-relaxed text-fg-dim">
-                    Only computed when both projects are lines within 1.6 km of each other (they could share a corridor). This pair doesn’t qualify, so the value
+                    Only computed when both projects are lines within 1 mi of each other (they could share a corridor). This pair doesn’t qualify, so the value
                     here is shared crews and logistics rather than land.
                   </p>
                 ) : (

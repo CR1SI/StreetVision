@@ -9,7 +9,7 @@ import { setSource } from '../hooks/useMapLibre'
 import { useUtilities } from '../hooks/useUtilities'
 import { api } from '../lib/api'
 import { PALETTE, tierColor } from '../lib/colors'
-import { fmtGap, fmtNum, tidyName } from '../lib/format'
+import { fmtDistance, fmtGap, fmtNum, tidyName } from '../lib/format'
 import { geocode } from '../lib/geocode'
 import { bounds, circle } from '../lib/geo'
 import { projectKey } from '../lib/mapLayers'
@@ -270,7 +270,7 @@ function Verdict({ v, point, radius, colors }) {
           <h3 className="eyebrow mb-2.5 text-fg-faint">Why: strongest signal</h3>
           <ul className="space-y-2.5 text-[12.5px] text-fg-dim">
             <Reason color={tierColor(top.proximity_tier)}>
-              <b className="text-fg">{fmtNum(top.center_distance_mi, 2)} mi apart</b> (center to center), closest points {fmtNum(top.closest_distance_km, 2)} km: tier{' '}
+              <b className="text-fg">{fmtNum(top.center_distance_mi, 2)} mi apart</b> (center to center), closest points {fmtDistance(top.closest_distance_mi)}: tier{' '}
               <TierLabel tier={top.proximity_tier} className="!text-[11px]" />. {top.shareable}.
             </Reason>
             <Reason color={top.build_windows_overlap ? PALETTE.teal : PALETTE.faint}>

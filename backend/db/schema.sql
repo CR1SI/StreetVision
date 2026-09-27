@@ -65,7 +65,7 @@ CREATE TABLE overlap_pairs (
     utility_b               TEXT NOT NULL,
     project_id_b            TEXT NOT NULL,
     center_distance_mi      DOUBLE PRECISION NOT NULL,
-    closest_distance_km     DOUBLE PRECISION NOT NULL,
+    closest_distance_mi     DOUBLE PRECISION NOT NULL,
     proximity_tier          TEXT NOT NULL,
     in_service_gap_days     INTEGER,
     build_windows_overlap   BOOLEAN NOT NULL,

@@ -50,8 +50,8 @@ with open(DATA_DIR / "overlaps.geojson", encoding="utf-8") as f:
 
 SHAREABLE = {
     "touching/crossing": "Coordinate outages and crossing structures",
-    "under 1.6 km": "Share right-of-way, access roads, permits",
-    "under 8 km": "Share laydown yards, deliveries, site logistics",
+    "under 1 mi": "Share right-of-way, access roads, permits",
+    "under 5 mi": "Share laydown yards, deliveries, site logistics",
     "under 25 mi": "Share crews, cranes, contractors",
 }
 
@@ -90,7 +90,7 @@ for i, feat in enumerate(raw_overlaps_geojson["features"]):
             "source_kind": "official"
         },
         "center_distance_mi": float(p["center_distance_mi"]),
-        "closest_distance_km": float(p["closest_distance_km"]),
+        "closest_distance_mi": float(p["closest_distance_mi"]),
         "proximity_tier": p["proximity_tier"],
         "shareable": SHAREABLE.get(p["proximity_tier"], ""),
         "in_service_gap_days": p.get("in_service_gap_days"),

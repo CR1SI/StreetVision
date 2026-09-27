@@ -10,17 +10,17 @@
 CREATE OR REPLACE FUNCTION find_overlaps(p_max_mi DOUBLE PRECISION, p_only_dataset INTEGER DEFAULT NULL)
 RETURNS TABLE (
     utility_a TEXT, project_id_a TEXT, utility_b TEXT, project_id_b TEXT,
-    center_distance_mi DOUBLE PRECISION, closest_distance_km DOUBLE PRECISION, proximity_tier TEXT,
+    center_distance_mi DOUBLE PRECISION, closest_distance_mi DOUBLE PRECISION, proximity_tier TEXT,
     in_service_gap_days INTEGER, build_windows_overlap BOOLEAN, location_confidence TEXT,
     override_involved BOOLEAN, score DOUBLE PRECISION, shared_row_acres DOUBLE PRECISION,
     connector GEOMETRY
 )
 LANGUAGE sql STABLE AS $$
     SELECT a.utility_id, a.project_id, b.utility_id, b.project_id,
-           m.center_mi, m.closest_km,
-           CASE WHEN m.closest_km <= 0.1 THEN 'touching/crossing'
-                WHEN m.closest_km <= 1.6 THEN 'under 1.6 km'
-                WHEN m.closest_km <= 8.0 THEN 'under 8 km'
+           m.center_mi, m.closest_mi,
+           CASE WHEN m.closest_mi <= 0.1 THEN 'touching/crossing'
+                WHEN m.closest_mi <= 1.0 THEN 'under 1 mi'
+                WHEN m.closest_mi <= 5.0 THEN 'under 5 mi'
                 ELSE 'under 25 mi' END,
            m.gap,
            COALESCE(a.build_start <= b.build_end AND b.build_start <= a.build_end, false),
@@ -32,7 +32,7 @@ LANGUAGE sql STABLE AS $$
                 + 0.3 * (1 - LEAST(COALESCE(m.gap, 1095), 1095) / 1095.0))::numeric, 4)::float,
            CASE WHEN GeometryType(a.geom) IN ('LINESTRING', 'MULTILINESTRING')
                  AND GeometryType(b.geom) IN ('LINESTRING', 'MULTILINESTRING')
-                 AND m.closest_km <= 1.6
+                 AND m.closest_mi <= 1.0
                 THEN round((LEAST(ST_Length(a.geom::geography), ST_Length(b.geom::geography))
                             * 3.28084 * 100 / 43560)::numeric, 1)::float END,   -- shorter line x 100 ft corridor
            ST_MakeLine(a.center, b.center)
@@ -42,7 +42,7 @@ LANGUAGE sql STABLE AS $$
      AND ST_DWithin(a.center::geography, b.center::geography, p_max_mi * 1609.344, false)
     CROSS JOIN LATERAL (
         SELECT ST_Distance(a.center::geography, b.center::geography, false) / 1609.344 AS center_mi,
-               ST_Distance(a.geom::geography, b.geom::geography, false) / 1000.0     AS closest_km,
+               ST_Distance(a.geom::geography, b.geom::geography, false) / 1609.344   AS closest_mi,
                abs(a.in_service_date - b.in_service_date)                           AS gap
     ) m
     WHERE m.center_mi < p_max_mi

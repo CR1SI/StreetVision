@@ -23,6 +23,12 @@ export const fmtNum = (n, digits = 0) =>
 export const fmtUsd = (n) =>
   n === null || n === undefined ? '—' : Number(n).toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
 
+export function fmtDistance(mi) {
+  if (mi == null || Number.isNaN(mi)) return '—'
+  if (mi < 0.25) return `${Math.round(mi * 5280).toLocaleString()} ft`
+  return `${fmtNum(mi, 2)} mi`
+}
+
 export function fmtGap(days) {
   if (days === null || days === undefined) return 'Gap unknown'
   if (days < 60) return `${days}-day gap`
