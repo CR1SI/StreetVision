@@ -23,6 +23,7 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, Query, UploadFil
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from sqlalchemy import text
 
 from api.db import engine
@@ -176,7 +177,7 @@ def projects(utilities: Optional[str] = Query(None, description="Comma-separated
         rows = conn.execute(sql, {"utils": utility_list(utilities), "kinds": kinds(source),
                                   "conf": allowed(min_confidence), "hide": hide_in_service}).mappings().all()
     return {"type": "FeatureCollection", "features": [
-        {"type": "Feature", "geometry": json.loads(r["geometry"]),
+        {"type": "Feature", "geometry": json.loads(r["geometry"] or "null"),
          "properties": project_out(r).model_dump(mode="json")} for r in rows]}
 
 
@@ -313,17 +314,23 @@ async def upload_dataset(
     content = await file.read(MAX_UPLOAD_BYTES + 1)
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(413, f"File over {MAX_UPLOAD_BYTES // (1024 * 1024)} MB")
-    rows = rows_from_csv(content)
-    token = secrets.token_urlsafe(24)
-    with engine.begin() as conn:
-        res = ingest(conn, rows, utility_id=utility_id, utility_name=utility_name, source_name=source_name,
-                     kind="user_submitted", submitted_by=submitted_by, notes=notes,
-                     public_attestation=public_attestation,
-                     delete_token_hash=hashlib.sha256(token.encode()).hexdigest())
-        ds = dataset_out(conn, res.dataset_id)
+
+    def _do_ingest():
+        rows = rows_from_csv(content)
+        token = secrets.token_urlsafe(24)
+        with engine.begin() as conn:
+            res = ingest(conn, rows, utility_id=utility_id, utility_name=utility_name,
+                         source_name=source_name, kind="user_submitted",
+                         submitted_by=submitted_by, notes=notes,
+                         public_attestation=public_attestation,
+                         delete_token_hash=hashlib.sha256(token.encode()).hexdigest())
+            ds = dataset_out(conn, res.dataset_id)
+        return token, res, ds
+
+    token, res, ds = await run_in_threadpool(_do_ingest)
     return UploadReport(dataset=ds, delete_token=token, rows_received=res.rows_received,
-                        rows_accepted=res.rows_accepted, rows_rejected=len(res.errors), errors=res.errors,
-                        new_overlaps=res.new_overlaps)
+                        rows_accepted=res.rows_accepted, rows_rejected=len(res.errors),
+                        errors=res.errors, new_overlaps=res.new_overlaps)
 
 
 @app.delete("/api/datasets/{dataset_id}")

@@ -30,7 +30,7 @@ export default function Check() {
   const [point, setPoint] = useState(() => {
     const lat = Number(param('lat'))
     const lon = Number(param('lon'))
-    return param('lat') && param('lon') && Number.isFinite(lat) && Number.isFinite(lon) ? { center: [lon, lat], label: param('label') || `${lat.toFixed(4)}, ${lon.toFixed(4)}` } : null
+    return param('lat') && param('lon') && Number.isFinite(lat) && Number.isFinite(lon) ? { center: [lon, lat], label: param('label') ?? `${lat.toFixed(4)}, ${lon.toFixed(4)}` } : null
   })
   const [geoBusy, setGeoBusy] = useState(false)
   const [geoError, setGeoError] = useState(null)

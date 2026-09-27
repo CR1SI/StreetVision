@@ -116,9 +116,15 @@ export default function Home() {
   }, [radiusDraft]) // eslint-disable-line react-hooks/exhaustive-deps
   const toggleUtility = (id) => {
     const all = utils.list.map((u) => u.utility_id)
-    const current = filters.utilities.length ? filters.utilities : all
-    let next = current.includes(id) ? current.filter((x) => x !== id) : [...current, id]
-    if (next.length === 0 || next.length === all.length) next = [] // none or all = no filter
+    let next
+    if (!filters.utilities.length) {
+      next = [id]
+    } else {
+      next = filters.utilities.includes(id)
+        ? filters.utilities.filter((x) => x !== id)
+        : [...filters.utilities, id]
+    }
+    if (next.length === all.length) next = []
     update({ utilities: next })
   }
   const isOn = (id) => !filters.utilities.length || filters.utilities.includes(id)

@@ -41,12 +41,19 @@ export default function Overlap() {
 
   // Both projects' real geometries for the inset map.
   const pair = useAsync(
-    (signal) => (o ? api.projects({ utilities: [o.a.utility_id, o.b.utility_id] }, { signal }) : Promise.resolve(null)),
+    (signal) => {
+      if (!o) return Promise.resolve(null)
+      const pa = o.project_a ?? o.a
+      const pb = o.project_b ?? o.b
+      return api.projects({ utilities: [pa.utility_id, pb.utility_id] }, { signal })
+    },
     [o?.overlap_id],
   )
   const pairFc = useMemo(() => {
     if (!pair.data || !o) return null
-    const keys = [projectKey(o.a), projectKey(o.b)]
+    const pa = o.project_a ?? o.a
+    const pb = o.project_b ?? o.b
+    const keys = [projectKey(pa), projectKey(pb)]
     return { ...pair.data, features: pair.data.features.filter((f) => keys.includes(projectKey(f.properties))) }
   }, [pair.data, o])
   const pairOverlaps = useMemo(() => (o ? [o] : undefined), [o])
@@ -104,7 +111,7 @@ export default function Overlap() {
               </h1>
 
               <div className="mb-6 grid gap-4 md:grid-cols-2">
-                {[o.project_a, o.project_b].map((p) => (
+                {[o.project_a ?? o.a, o.project_b ?? o.b].map((p) => (
                   <ProjectCard key={projectKey(p)} p={p} colors={utils.colors} name={utils.names[p.utility_id]} />
                 ))}
               </div>
@@ -134,7 +141,7 @@ export default function Overlap() {
                     {o.build_windows_overlap ? 'Build windows overlap' : 'Build windows don’t overlap'}
                   </Pill>
                 </div>
-                <Timeline projects={[o.project_a, o.project_b]} colors={utils.colors} />
+                <Timeline projects={[o.project_a ?? o.a, o.project_b ?? o.b]} colors={utils.colors} />
                 <p className="mt-4 text-[12.5px] text-fg-dim">
                   {fmtGap(o.in_service_gap_days)} between in-service dates.{' '}
                   {o.either_already_in_service && 'At least one project’s in-service date has already passed, so this may be a lesson for the next project rather than a live opportunity.'}
@@ -182,7 +189,7 @@ export default function Overlap() {
 
         {/* Inset map */}
         <aside className="flex h-[440px] flex-col border-ink-500 lg:sticky lg:top-0 lg:h-[calc(100vh-4rem)] lg:w-[440px] lg:shrink-0 lg:border-l">
-          <MapView className="min-h-0 flex-1" projects={pairFc} overlaps={pairOverlaps} colors={utils.colors} highlight={o ? [projectKey(o.a), projectKey(o.b)] : []} fit={fit} fitOptions={{ padding: 70, maxZoom: 13 }}>
+          <MapView className="min-h-0 flex-1" projects={pairFc} overlaps={pairOverlaps} colors={utils.colors} highlight={o ? [projectKey(o.project_a ?? o.a), projectKey(o.project_b ?? o.b)] : []} fit={fit} fitOptions={{ padding: 70, maxZoom: 13 }}>
             {({ startOrbit, stopOrbit, orbiting, fitBounds }) =>
               o && (
                 <div className="absolute left-3 top-3 z-10 flex gap-2">

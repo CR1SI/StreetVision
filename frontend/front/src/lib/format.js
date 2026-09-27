@@ -39,7 +39,11 @@ export function fmtWindow(w) {
   return a === b ? a : `${a} – ${b}`
 }
 
-export const yearOf = (iso) => (iso ? Number(String(iso).slice(0, 4)) : null)
+export const yearOf = (iso) => {
+  if (!iso) return null
+  const n = Number(String(iso).slice(0, 4))
+  return Number.isNaN(n) ? null : n
+}
 
 /** Remove the "SAV:" / "GTC:" sponsor prefixes GPC titles carry, and tidy all-caps names. */
 export function tidyName(name = '') {
