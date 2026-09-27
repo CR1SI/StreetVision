@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Python virtual environments & bytecode
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local environment variables & secrets
+.env
+.env.local
+.env.*.local
+
+# Frontend dev / build caches
+.vite/
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Scraper raw caches
+data/raw/osm_substations.json
+backend/data/raw/osm_substations.json
+AGENTS.md
+GEMINI.md
+.vscode/settings.json
+backend/api_server.py
+frontend/front/vite.config.js

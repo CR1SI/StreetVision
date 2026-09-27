@@ -1,0 +1,65 @@
+import { forwardRef } from 'react'
+import { CalendarCheck2, Hand, Users } from 'lucide-react'
+import { fmtGap, fmtNum, tidyName } from '../lib/format'
+import { TypeIcon, typeLabel } from '../lib/projectTypes'
+import { ConfidenceBadge, Pill, TierLabel, UtilityTag } from './ui'
+
+/** One row of the ranked coordination list. Works for stored and live (radius > 25 mi) results. */
+export const OverlapCard = forwardRef(function OverlapCard({ o, colors, selected, onSelect, compact = false }, ref) {
+  const live = o.overlap_id === undefined || o.overlap_id === null
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={`group block w-full rounded-2xl border px-4 pb-3.5 pt-3.5 text-left transition-colors ${
+        selected ? 'border-[#8B7CF6]/70 bg-white/[0.08]' : 'border-white/[0.06] bg-white/[0.035] hover:bg-white/[0.07]'
+      }`}
+    >
+      <div className="mb-2.5 flex items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-white/[0.08] px-1 text-[11px] font-semibold text-fg group-aria-pressed:bg-[#8B7CF6] group-aria-pressed:text-white">
+            {o.rank}
+          </span>
+          {live ? <span className="text-[12px] font-semibold text-[#C4B5FD]">Live · {fmtNum(o.center_distance_mi, 1)} mi</span> : <TierLabel tier={o.proximity_tier} />}
+        </span>
+        <span className="shrink-0 text-[11px] text-fg-faint">{fmtGap(o.in_service_gap_days).replace(/ \(.*\)/, '')}</span>
+      </div>
+      <div className="mb-1 truncate text-[13px] font-semibold" title={`${o.a.name} (${typeLabel(o.a.project_type)})`}>
+        <UtilityTag id={o.a.utility_id} colors={colors} />
+        &nbsp;<TypeIcon type={o.a.project_type} className="mb-0.5 inline h-3.5 w-3.5 text-fg-dim" />&nbsp;{tidyName(o.a.name)}
+      </div>
+      <div className="mb-2.5 truncate text-[13px] font-semibold" title={`${o.b.name} (${typeLabel(o.b.project_type)})`}>
+        <UtilityTag id={o.b.utility_id} colors={colors} />
+        &nbsp;<TypeIcon type={o.b.project_type} className="mb-0.5 inline h-3.5 w-3.5 text-fg-dim" />&nbsp;{tidyName(o.b.name)}
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[12px] text-fg-dim">
+          {fmtNum(o.center_distance_mi, 2)} mi apart
+        </span>
+        {!live && <ConfidenceBadge level={o.location_confidence} />}
+      </div>
+      {!compact && !live && (o.build_windows_overlap || o.override_involved || o.user_data_involved || o.either_already_in_service) && (
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {o.build_windows_overlap && (
+            <Pill tone="teal" title="The two construction windows overlap in time">
+              <CalendarCheck2 className="h-3 w-3" aria-hidden="true" /> Same build window
+            </Pill>
+          )}
+          {o.either_already_in_service && <Pill title="At least one project's in-service date has passed">In service</Pill>}
+          {o.override_involved && (
+            <Pill tone="amber" title="At least one location was placed by hand">
+              <Hand className="h-3 w-3" aria-hidden="true" /> Hand-placed
+            </Pill>
+          )}
+          {o.user_data_involved && (
+            <Pill tone="purple" title="Includes user-submitted data">
+              <Users className="h-3 w-3" aria-hidden="true" /> Community data
+            </Pill>
+          )}
+        </div>
+      )}
+    </button>
+  )
+})

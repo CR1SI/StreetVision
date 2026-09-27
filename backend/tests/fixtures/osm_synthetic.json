@@ -1,0 +1,291 @@
+{
+"note": "SYNTHETIC test fixture - approximate coordinates, not verified",
+"elements": [
+{
+"type": "node",
+"id": 1,
+"lat": 32.3,
+"lon": -80.93,
+"tags": {
+"power": "substation",
+"name": "Okatie Substation",
+"operator": "Dominion Energy"
+}
+},
+{
+"type": "node",
+"id": 2,
+"lat": 32.29,
+"lon": -81.03,
+"tags": {
+"power": "substation",
+"name": "Jasper",
+"operator": "SCE&G"
+}
+},
+{
+"type": "node",
+"id": 3,
+"lat": 32.237,
+"lon": -80.86,
+"tags": {
+"power": "substation",
+"name": "Bluffton",
+"operator": "Dominion Energy"
+}
+},
+{
+"type": "node",
+"id": 4,
+"lat": 32.32,
+"lon": -81.05,
+"tags": {
+"power": "substation",
+"name": "Riverport",
+"operator": "Dominion Energy"
+}
+},
+{
+"type": "node",
+"id": 5,
+"lat": 32.69,
+"lon": -80.85,
+"tags": {
+"power": "substation",
+"name": "Yemassee",
+"operator": "Dominion Energy"
+}
+},
+{
+"type": "node",
+"id": 6,
+"lat": 33.435,
+"lon": -81.91,
+"tags": {
+"power": "substation",
+"name": "Urquhart Station",
+"operator": "Dominion Energy"
+}
+},
+{
+"type": "node",
+"id": 7,
+"lat": 33.55,
+"lon": -81.76,
+"tags": {
+"power": "substation",
+"name": "Toolebeck",
+"operator": "Dominion Energy"
+}
+},
+{
+"type": "node",
+"id": 8,
+"lat": 33.63,
+"lon": -82.05,
+"tags": {
+"power": "substation",
+"name": "Stevens Creek",
+"operator": "Dominion Energy"
+}
+},
+{
+"type": "node",
+"id": 9,
+"lat": 33.7,
+"lon": -82.1,
+"tags": {
+"power": "substation",
+"name": "Hooks",
+"operator": "Dominion Energy"
+}
+},
+{
+"type": "node",
+"id": 10,
+"lat": 33.66,
+"lon": -82.195,
+"tags": {
+"power": "substation",
+"name": "Thurmond",
+"operator": "Dominion Energy"
+}
+},
+{
+"type": "node",
+"id": 11,
+"lat": 32.357,
+"lon": -81.168,
+"tags": {
+"power": "substation",
+"name": "Plant McIntosh",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 12,
+"lat": 32.3,
+"lon": -81.11,
+"tags": {
+"power": "substation",
+"name": "Purrysburg",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 13,
+"lat": 32.25,
+"lon": -81.2,
+"tags": {
+"power": "substation",
+"name": "Goshen",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 14,
+"lat": 33.36,
+"lon": -81.99,
+"tags": {
+"power": "substation",
+"name": "Goshen",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 15,
+"lat": 32.14,
+"lon": -81.15,
+"tags": {
+"power": "substation",
+"name": "Kraft",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 16,
+"lat": 33.47,
+"lon": -81.97,
+"tags": {
+"power": "substation",
+"name": "Fenwick Street",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 17,
+"lat": 33.44,
+"lon": -81.95,
+"tags": {
+"power": "substation",
+"name": "Sand Bar Ferry",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 18,
+"lat": 33.662,
+"lon": -82.199,
+"tags": {
+"power": "substation",
+"name": "Thurmond Dam",
+"operator": "US Army Corps"
+}
+},
+{
+"type": "node",
+"id": 19,
+"lat": 33.53,
+"lon": -82.13,
+"tags": {
+"power": "substation",
+"name": "Evans Primary",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 20,
+"lat": 33.46,
+"lon": -82.5,
+"tags": {
+"power": "substation",
+"name": "Thomson Primary",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 21,
+"lat": 32.02,
+"lon": -81.27,
+"tags": {
+"power": "substation",
+"name": "Little Ogeechee",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 22,
+"lat": 32.14,
+"lon": -81.38,
+"tags": {
+"power": "substation",
+"name": "Meldrim",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 23,
+"lat": 32.08,
+"lon": -81.2,
+"tags": {
+"power": "substation",
+"name": "Dean Forest",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 24,
+"lat": 32.07,
+"lon": -81.08,
+"tags": {
+"power": "substation",
+"name": "Boulevard",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 25,
+"lat": 32.08,
+"lon": -81.05,
+"tags": {
+"power": "substation",
+"name": "Deptford",
+"operator": "Georgia Power"
+}
+},
+{
+"type": "node",
+"id": 26,
+"lat": 32.06,
+"lon": -81.1,
+"tags": {
+"power": "substation",
+"name": "Magnolia",
+"operator": "Georgia Power"
+}
+}
+]
+}
