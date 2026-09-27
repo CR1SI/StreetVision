@@ -13,20 +13,20 @@ export const OverlapCard = forwardRef(function OverlapCard({ o, colors, selected
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`group block w-full rounded-xl px-4 pb-3 pt-3.5 text-left transition-colors ${
-        selected ? 'bg-ink-600 shadow-[inset_3px_0_0_#F0397E]' : 'bg-ink-700 shadow-[inset_3px_0_0_transparent] hover:bg-[#1B2641]'
+      className={`group block w-full rounded-2xl border px-4 pb-3.5 pt-3.5 text-left transition-colors ${
+        selected ? 'border-[#8B7CF6]/70 bg-white/[0.08]' : 'border-white/[0.06] bg-white/[0.035] hover:bg-white/[0.07]'
       }`}
     >
       <div className="mb-2.5 flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2">
-          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-ink-600 px-1 text-[10.5px] font-bold text-fg-dim group-aria-pressed:bg-ink-500">
+          <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-white/[0.08] px-1 text-[11px] font-semibold text-fg group-aria-pressed:bg-[#8B7CF6] group-aria-pressed:text-white">
             {o.rank}
           </span>
-          {live ? <span className="eyebrow text-[#C4B5FD]">Live · {fmtNum(o.center_distance_mi, 1)} mi</span> : <TierLabel tier={o.proximity_tier} />}
+          {live ? <span className="text-[12px] font-semibold text-[#C4B5FD]">Live · {fmtNum(o.center_distance_mi, 1)} mi</span> : <TierLabel tier={o.proximity_tier} />}
         </span>
-        <span className="shrink-0 text-[10.5px] text-fg-faint">{fmtGap(o.in_service_gap_days).replace(/ \(.*\)/, '')}</span>
+        <span className="shrink-0 text-[11px] text-fg-faint">{fmtGap(o.in_service_gap_days).replace(/ \(.*\)/, '')}</span>
       </div>
-      <div className="mb-0.5 truncate text-[13px] font-semibold" title={`${o.a.name} (${typeLabel(o.a.project_type)})`}>
+      <div className="mb-1 truncate text-[13px] font-semibold" title={`${o.a.name} (${typeLabel(o.a.project_type)})`}>
         <UtilityTag id={o.a.utility_id} colors={colors} />
         &nbsp;<TypeIcon type={o.a.project_type} className="mb-0.5 inline h-3.5 w-3.5 text-fg-dim" />&nbsp;{tidyName(o.a.name)}
       </div>
@@ -35,8 +35,8 @@ export const OverlapCard = forwardRef(function OverlapCard({ o, colors, selected
         &nbsp;<TypeIcon type={o.b.project_type} className="mb-0.5 inline h-3.5 w-3.5 text-fg-dim" />&nbsp;{tidyName(o.b.name)}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-[11.5px] text-fg-dim">
-          {fmtNum(o.center_distance_mi, 2)} mi apart · score {fmtNum(o.score, 2)}
+        <span className="text-[12px] text-fg-dim">
+          {fmtNum(o.center_distance_mi, 2)} mi apart
         </span>
         {!live && <ConfidenceBadge level={o.location_confidence} />}
       </div>

@@ -71,7 +71,7 @@ export default function Dataset() {
     <Layout active="data" fill>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
         {/* Item panel */}
-        <aside className="scroll-thin shrink-0 overflow-y-auto border-ink-500 bg-ink-900 px-6 py-7 lg:w-[400px] lg:border-r">
+        <aside className="scroll-thin shrink-0 overflow-y-auto border-white/[0.07] bg-ink-900 px-6 py-7 lg:w-[400px] lg:border-r">
           <a href="/data/" className="mb-5 inline-flex items-center gap-1.5 text-[12.5px] text-fg-dim hover:text-fg">
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Back to catalog
           </a>
@@ -117,7 +117,7 @@ export default function Dataset() {
                   Download failed: {dlError}
                 </p>
               )}
-              <div className="space-y-3.5 border-t border-ink-500 pt-5">
+              <div className="space-y-3.5 border-t border-white/[0.07] pt-5">
                 <Row label="Dataset type">Planned transmission projects</Row>
                 <Row label="Utility ID">{d.utility_id}</Row>
                 <Row label="Dataset ID">{d.dataset_id}</Row>
@@ -150,18 +150,18 @@ export default function Dataset() {
 
         {/* Map / table */}
         <section className="relative flex min-h-[420px] flex-1 flex-col">
-          <div className="absolute right-14 top-3 z-20 flex overflow-hidden rounded-lg border border-ink-500 bg-ink-800/95" role="tablist" aria-label="View">
+          <div className="absolute right-14 top-3 z-20 flex overflow-hidden rounded-lg border border-white/[0.07] bg-ink-800/95" role="tablist" aria-label="View">
             {[
               ['map', 'Map', MapIcon],
               ['table', 'Table', Table2],
             ].map(([v, l, Icon]) => (
-              <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => setView(v)} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold ${view === v ? 'bg-ink-600 text-fg' : 'text-fg-dim hover:text-fg'}`}>
+              <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => setView(v)} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold ${view === v ? 'bg-white/[0.07] text-fg' : 'text-fg-dim hover:text-fg'}`}>
                 <Icon className="h-3.5 w-3.5" /> {l}
               </button>
             ))}
           </div>
           {d && (
-            <div className="absolute left-3 top-3 z-20 flex items-center gap-2 rounded-lg border border-ink-500 bg-ink-800/95 px-3 py-1.5 text-xs font-semibold">
+            <div className="absolute left-3 top-3 z-20 flex items-center gap-2 rounded-lg border border-white/[0.07] bg-ink-800/95 px-3 py-1.5 text-xs font-semibold">
               <span className="h-2 w-2 rounded-full" style={{ background: color }} /> Showing: {d.source_name.length > 40 ? `${utils.names[d.utility_id]} dataset` : d.source_name}
             </div>
           )}
@@ -204,7 +204,7 @@ function ProjectTable({ features, loading, involved }) {
         <thead>
           <tr>
             {cols.map(([k, l]) => (
-              <th key={k} scope="col" className="sticky top-0 border-b border-ink-500 bg-ink px-3 py-2.5 font-semibold text-fg-faint">
+              <th key={k} scope="col" className="sticky top-0 border-b border-white/[0.07] bg-ink px-3 py-2.5 font-semibold text-fg-faint">
                 <button type="button" onClick={() => setSort((s) => ({ key: k, dir: s.key === k ? -s.dir : 1 }))} className="flex items-center gap-1 hover:text-fg">
                   {l} {sort.key === k ? (sort.dir > 0 ? '↑' : '↓') : ''}
                 </button>
@@ -214,7 +214,7 @@ function ProjectTable({ features, loading, involved }) {
         </thead>
         <tbody>
           {rows.map((p) => (
-            <tr key={p.project_id} className="hover:bg-ink-800">
+            <tr key={p.project_id} className="hover:bg-white/[0.035]">
               <td className="border-b border-ink-700 px-3 py-2.5 font-mono text-[11.5px] text-fg-dim">{p.project_id}</td>
               <td className="border-b border-ink-700 px-3 py-2.5">
                 <div className="font-semibold">{tidyName(p.name)}</div>

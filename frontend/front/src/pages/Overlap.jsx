@@ -104,8 +104,8 @@ export default function Overlap() {
                 <span className="rounded-lg px-2.5 py-1 text-[11px] font-bold" style={{ background: `${tierColor(o.proximity_tier)}22`, color: tierColor(o.proximity_tier) }}>
                   RANK {o.rank} · <TierLabel tier={o.proximity_tier} className="!text-inherit" />
                 </span>
-                <span className="rounded-lg bg-ink-700 px-2.5 py-1 text-[11px] font-bold text-fg-dim">Score {fmtNum(o.score, 3)}</span>
-                <span className="rounded-lg bg-ink-700 px-2.5 py-1 text-[11px] font-bold text-fg-faint">{o.label}</span>
+                <span className="rounded-lg bg-white/[0.04] px-2.5 py-1 text-[11px] font-bold text-fg-dim">Score {fmtNum(o.score, 3)}</span>
+                <span className="rounded-lg bg-white/[0.04] px-2.5 py-1 text-[11px] font-bold text-fg-faint">{o.label}</span>
               </div>
               <h1 className="mb-7 mt-2 text-2xl font-bold leading-snug sm:text-[26px]">
                 {tidyName(o.a.name)} <span className="font-medium text-fg-faint">×</span> {tidyName(o.b.name)}
@@ -189,7 +189,7 @@ export default function Overlap() {
         </div>
 
         {/* Inset map */}
-        <aside className="flex h-[440px] flex-col border-ink-500 lg:sticky lg:top-0 lg:h-[calc(100vh-4rem)] lg:w-[440px] lg:shrink-0 lg:border-l">
+        <aside className="flex h-[440px] flex-col border-white/[0.07] lg:sticky lg:top-0 lg:h-[calc(100vh-4rem)] lg:w-[440px] lg:shrink-0 lg:border-l">
           <MapView className="min-h-0 flex-1" projects={pairFc} overlaps={pairOverlaps} colors={utils.colors} highlight={o ? [projectKey(o.project_a ?? o.a), projectKey(o.project_b ?? o.b)] : []} fit={fit} fitOptions={{ padding: 70, maxZoom: 13 }}>
             {({ startOrbit, stopOrbit, orbiting, fitBounds }) =>
               o && (
@@ -204,7 +204,7 @@ export default function Overlap() {
               )
             }
           </MapView>
-          <p className="shrink-0 border-t border-ink-500 bg-ink-800 px-4 py-2.5 text-[11px] text-fg-faint">
+          <p className="shrink-0 border-t border-white/[0.07] bg-white/[0.035] px-4 py-2.5 text-[11px] text-fg-faint">
             Lines are straight segments between substations, not surveyed routes.
           </p>
         </aside>
@@ -238,7 +238,7 @@ function ProjectCard({ p, colors, name }) {
         <Row label="Source">{p.source_kind === 'official' ? 'Official filing' : <span className="text-[#B3AAF7]">Community submitted</span>}</Row>
       </div>
       {(p.confidence_note || p.is_override) && (
-        <p className="mt-3 rounded-lg bg-ink-700 px-3 py-2 text-[11.5px] text-fg-dim">
+        <p className="mt-3 rounded-lg bg-white/[0.04] px-3 py-2 text-[11.5px] text-fg-dim">
           {p.is_override && <b className="text-brand-amber">Hand-placed location. </b>}
           {p.confidence_note}
         </p>

@@ -11,7 +11,7 @@ import { useMapLibre } from '../hooks/useMapLibre'
 import { useUtilities } from '../hooks/useUtilities'
 import { api } from '../lib/api'
 import { PALETTE, TIERS } from '../lib/colors'
-import { fmtDate, fmtDistance, fmtGap, fmtNum, fmtUsd, fmtWindow, tidyName } from '../lib/format'
+import { fmtDate, fmtDistance, fmtNum, fmtUsd, tidyName } from '../lib/format'
 import { bounds, connectorsToGeoJSON, midpoint, overlapKey } from '../lib/geo'
 import { drawConnectors, drawProjects, PROJECT_HIT_LAYERS, projectKey, selectFeature, setModelMode } from '../lib/mapLayers'
 import { createModelsLayer, MODELS_LAYER } from '../lib/models3d'
@@ -32,7 +32,9 @@ const SOURCE_OPTIONS = [
 const NEAR_RADIUS = 10
 // Keep fitted data clear of the filter panel (top) and legend (bottom-left).
 const FIT_PADDING = () =>
-  window.innerWidth < 640 ? { top: 150, bottom: 30, left: 30, right: 50 } : { top: 200, bottom: 50, left: 250, right: 70 }
+  window.innerWidth < 640
+    ? { top: 150, bottom: 30, left: 30, right: 50 }
+    : { top: 200, bottom: 50, left: 250, right: window.innerWidth >= 1024 ? 500 : 70 } // clear of the floating list panel
 
 function initialFilters() {
   return {
@@ -310,7 +312,7 @@ export default function Home() {
 
   return (
     <Layout active="home" fill>
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
         {/* ------------------------------------------------ MAP */}
         <section className="relative h-[58vh] min-h-[360px] flex-none lg:h-auto lg:flex-1" aria-label="Map of planned projects">
           <div className="absolute inset-0">
@@ -324,8 +326,8 @@ export default function Home() {
           )}
 
           {/* Filter panel */}
-          <div className="absolute left-3 top-3 z-20 max-w-[calc(100%-5.5rem)] sm:left-4 sm:top-4">
-            <div className="card flex flex-col gap-2.5 bg-ink-800/95 p-2.5 shadow-2xl backdrop-blur sm:p-3">
+          <div className="absolute left-3 top-3 z-20 max-w-[calc(100%-5.5rem)] sm:left-4 sm:top-4 lg:max-w-[calc(100%-420px-8rem)]">
+            <div className="glass flex flex-col gap-2.5 p-2.5 sm:p-3">
               <div className="flex flex-wrap items-center gap-2">
                 {utils.list.map((u) => {
                   const on = isOn(u.utility_id)
@@ -346,7 +348,7 @@ export default function Home() {
                   )
                 })}
                 {utils.loading && <Skeleton className="h-7 w-28 rounded-full" />}
-                <a href="/contribute/" className="chip border border-dashed border-ink-500 text-fg-faint hover:text-fg-dim" title="Add another utility's planned projects">
+                <a href="/contribute/" className="chip border border-dashed border-white/[0.07] text-fg-faint hover:text-fg-dim" title="Add another utility's planned projects">
                   <Plus className="h-3.5 w-3.5" aria-hidden="true" /> Add utility
                 </a>
                 <button
@@ -361,7 +363,7 @@ export default function Home() {
               </div>
 
               {filtersOpen && (
-                <div className="flex flex-wrap items-center gap-2 border-t border-ink-500 pt-2.5">
+                <div className="grid grid-cols-2 items-center gap-2 border-t border-white/[0.07] pt-2.5 sm:flex sm:flex-wrap">
                   <Select label="Source" value={filters.source} onChange={(v) => update({ source: v })} options={SOURCE_OPTIONS} />
                   <Select
                     label="Location confidence"
@@ -377,7 +379,7 @@ export default function Home() {
                     options={[{ v: '', l: 'All tiers' }, ...TIERS.map((t) => ({ v: t.key, l: t.label }))]}
                     disabled={live}
                   />
-                  <label className="flex cursor-pointer items-center gap-2 rounded-full bg-ink-700 px-3 py-1.5 text-xs text-fg-dim">
+                  <label className="flex cursor-pointer items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5 text-xs text-fg-dim">
                     <input
                       type="checkbox"
                       className="peer sr-only"
@@ -389,7 +391,7 @@ export default function Home() {
                       <span className={`absolute top-0.5 h-3 w-3 rounded-full bg-fg transition-all ${filters.hideInService ? 'left-3.5' : 'left-0.5'}`} />
                     </span>
                   </label>
-                  <div className="flex items-center gap-2 rounded-full bg-ink-700 px-3 py-1.5">
+                  <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5">
                     <label htmlFor="radius" className="whitespace-nowrap text-xs text-fg-dim">
                       Radius <b className="text-fg">{radiusDraft} mi</b>
                     </label>
@@ -409,7 +411,7 @@ export default function Home() {
                       <RotateCcw className="h-3 w-3" aria-hidden="true" /> Reset
                     </button>
                   )}
-                  <p id="radius-hint" className="w-full text-[11px] text-fg-faint">
+                  <p id="radius-hint" className="col-span-2 w-full text-[11px] text-fg-faint">
                     {live
                       ? 'Over 25 mi: overlaps are recomputed live by PostGIS. Tier and confidence filters apply to the stored 25-mile list only.'
                       : '25 mi is the challenge’s overlap threshold. Drag past it to run the live PostGIS engine at a wider radius.'}
@@ -456,30 +458,43 @@ export default function Home() {
         </section>
 
         {/* ------------------------------------------------ SIDEBAR */}
-        <aside className="flex min-h-0 flex-1 flex-col border-ink-500 bg-ink-800 lg:w-[440px] lg:flex-none lg:border-l" aria-label="Ranked coordination opportunities">
+        <aside
+          className="glass m-3 flex min-h-0 flex-1 flex-col overflow-hidden lg:absolute lg:bottom-14 lg:right-14 lg:top-4 lg:z-30 lg:m-0 lg:w-[420px]"
+          aria-label="Ranked coordination opportunities"
+        >
           {selected ? (
             <OverlapPanel o={selected} colors={utils.colors} orbiting={orbiting} onBack={() => select(null)} onOrbit={() => select(selected)} onStop={stopOrbit} />
           ) : (
             <>
-              <div className="border-b border-ink-500 px-5 pb-3.5 pt-5">
+              <div className="border-b border-white/[0.06] px-5 pb-4 pt-5">
                 <div className="mb-1 flex items-center justify-between">
-                  <h1 className="text-base font-bold">Ranked opportunities</h1>
-                  <span className="rounded-full bg-ink-600 px-2.5 py-0.5 text-[11px] font-bold text-fg-dim">{overlaps.loading ? '…' : list.length}</span>
+                  <h1 className="text-lg font-bold">Ranked opportunities</h1>
+                  <span className="rounded-full bg-white/[0.07] px-2.5 py-0.5 text-[12px] font-semibold text-fg">{overlaps.loading ? '…' : list.length}</span>
                 </div>
                 <p className="text-xs text-fg-dim">
                   {filters.utilities.length ? filters.utilities.join(' × ') : 'All utilities'} · within {filters.radius} mi
                   {projectCount !== undefined && ` · ${projectCount} projects mapped`}
                 </p>
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-fg-faint">
-                  <Info className="h-3 w-3" aria-hidden="true" /> Score = 70% closeness + 30% timing. Click a row to fly there.
+                <div className="mt-4 grid grid-cols-2 gap-2.5">
+                  <div className="tile-pink px-3.5 py-3">
+                    <div className="text-[11px] font-semibold opacity-70">Touching or crossing</div>
+                    <div className="text-xl font-bold">{overlaps.loading && !overlaps.data ? '…' : list.filter((o) => o.proximity_tier === 'touching/crossing').length}</div>
+                  </div>
+                  <div className="tile-blue px-3.5 py-3">
+                    <div className="text-[11px] font-semibold opacity-70">Built at the same time</div>
+                    <div className="text-xl font-bold">{overlaps.loading && !overlaps.data ? '…' : list.filter((o) => o.build_windows_overlap).length}</div>
+                  </div>
+                </div>
+                <p className="mt-3 flex items-center gap-1 text-[11px] text-fg-faint">
+                  <Info className="h-3 w-3" aria-hidden="true" /> Ranked by closeness (70%) and timing (30%). Click a row to fly there.
                 </p>
               </div>
-              <div className="scroll-thin flex-1 space-y-2.5 overflow-y-auto px-4 py-3.5">
+              <div className="scroll-thin flex-1 space-y-2.5 overflow-y-auto px-4 py-4">
                 {overlaps.error && <ErrorState error={overlaps.error} onRetry={overlaps.reload} />}
                 {overlaps.loading && !overlaps.data && [0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-[118px]" />)}
                 {!overlaps.loading && !overlaps.error && list.length === 0 && (
                   <div className="card p-5 text-center">
-                    <p className="mb-1 text-sm font-bold">No overlaps match these filters</p>
+                    <p className="mb-1 text-[13px] font-semibold">No overlaps match these filters</p>
                     <p className="mb-4 text-xs text-fg-dim">Most project pairs don’t overlap, and that’s expected. Try loosening a filter.</p>
                     <button type="button" className="btn-ghost" onClick={resetFilters}>
                       <RotateCcw className="h-3.5 w-3.5" /> Reset filters
@@ -509,13 +524,13 @@ export default function Home() {
 
 function Select({ label, value, onChange, options, disabled }) {
   return (
-    <label className={`relative ${disabled ? 'opacity-40' : ''}`}>
+    <label className={`relative block sm:inline-block ${disabled ? 'opacity-40' : ''}`}>
       <span className="sr-only">{label}</span>
       <select
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="cursor-pointer appearance-none rounded-full border border-transparent bg-ink-700 py-1.5 pl-3 pr-7 text-xs text-fg-dim hover:text-fg focus:border-brand-teal focus:outline-none"
+        className="w-full cursor-pointer appearance-none rounded-full border border-transparent bg-white/[0.04] py-2 pl-3 pr-7 text-xs text-fg-dim hover:text-fg focus:border-brand-teal focus:outline-none sm:w-auto sm:py-1.5"
         title={label}
       >
         {options.map((o) => (
@@ -614,85 +629,156 @@ function Legend({ colors, list, threeD }) {
   )
 }
 
+/** Construction starts and in-service dates for both projects, in date order, with "Today" placed among them. */
+function timelineEvents(o) {
+  const ev = []
+  for (const p of [o.a, o.b]) {
+    const start = Number(String(p.build_window ?? '').split('-')[0]) || null
+    if (start) ev.push({ t: new Date(start, 0, 1), when: String(start), what: 'Construction starts', p, kind: 'build' })
+    if (p.in_service_date) ev.push({ t: new Date(p.in_service_date), when: fmtDate(p.in_service_date), what: 'In service', p, kind: 'done' })
+  }
+  ev.push({ t: new Date(), when: 'Today', what: '', kind: 'today' })
+  return ev.sort((x, y) => x.t - y.t)
+}
+
 function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
   const live = o.overlap_id === undefined
+  const events = timelineEvents(o)
+  const gapMonths = o.in_service_gap_days === null || o.in_service_gap_days === undefined ? null : Math.round(o.in_service_gap_days / 30.4)
   return (
     <div className="animate-in flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between border-b border-ink-500 px-5 py-3">
-        <button type="button" onClick={onBack} className="flex items-center gap-1.5 text-[12.5px] text-fg-dim hover:text-fg">
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Ranked list
+      <div className="flex items-center justify-between px-5 pt-4">
+        <button type="button" onClick={onBack} className="btn-ghost rounded-full px-3 py-1.5 text-[12px]">
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> All overlaps
         </button>
-        <button type="button" onClick={onBack} aria-label="Close detail" className="rounded-md p-1 text-fg-faint hover:text-fg">
+        <button type="button" onClick={onBack} aria-label="Close detail" className="rounded-full p-2 text-fg-faint hover:bg-white/[0.06] hover:text-fg">
           <X className="h-4 w-4" />
         </button>
       </div>
-      <div className="scroll-thin flex-1 overflow-y-auto px-5 py-5">
-        <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-md bg-brand-pink-dim px-2.5 py-1 text-[11px] font-bold text-brand-pink">RANK {o.rank}</span>
-          {live ? <Pill tone="purple">Live result</Pill> : <TierLabel tier={o.proximity_tier} />}
-          <span className="ml-auto text-[11px] font-bold text-fg-faint">Score {fmtNum(o.score, 2)}</span>
-        </div>
-        <h2 className="mb-5 text-lg font-bold leading-snug">
-          {tidyName(o.a.name)} <span className="font-medium text-fg-faint">×</span> {tidyName(o.b.name)}
-        </h2>
 
-        <div className="space-y-2.5">
-          {[o.a, o.b].map((p) => (
-            <div key={p.utility_id + p.project_id} className="rounded-xl border border-ink-500 bg-ink-700 px-4 py-3" style={{ borderLeft: `3px solid ${colors[p.utility_id]}` }}>
-              <div className="eyebrow mb-1">
-                <UtilityTag id={p.utility_id} colors={colors} /> <span className="text-fg-faint">· {p.project_id}</span>
-                {p.source_kind === 'user_submitted' && <span className="ml-1 text-[#B3AAF7]">· community</span>}
+      <div className="scroll-thin flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        {/* Header card */}
+        <div className="tile p-4">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[#8B7CF6] px-1.5 text-[12px] font-bold text-white">{o.rank}</span>
+              {live ? <Pill tone="purple">Live result</Pill> : <TierLabel tier={o.proximity_tier} />}
+            </span>
+            {!live && (
+              <a href={`/overlap/?id=${o.overlap_id}`} className="btn-primary rounded-full px-3 py-1.5 text-[12px]">
+                Details <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
+          <h2 className="text-[16px] font-bold leading-snug">
+            {tidyName(o.a.name)} <span className="font-normal text-fg-faint">×</span> {tidyName(o.b.name)}
+          </h2>
+          <div className="mt-3 grid grid-cols-3 gap-3 border-t border-white/[0.06] pt-3 text-[11px]">
+            {[o.a, o.b].map((p) => (
+              <div key={p.utility_id + p.project_id} className="min-w-0">
+                <div className="text-fg-faint">
+                  <UtilityTag id={p.utility_id} colors={colors} /> project
+                </div>
+                <div className="truncate text-[13px] font-semibold text-fg" title={p.project_id}>{p.project_id}</div>
               </div>
-              <div className="mb-2 text-[13px] font-semibold">{tidyName(p.name)}</div>
-              <div className="flex justify-between text-[11.5px] text-fg-faint">
-                <span>In service {fmtDate(p.in_service_date)}</span>
-                <span>Build {fmtWindow(p.build_window)}</span>
-              </div>
+            ))}
+            <div>
+              <div className="text-fg-faint">Location</div>
+              {live ? <div className="text-[13px] font-semibold">—</div> : <ConfidenceBadge level={o.location_confidence} suffix={false} className="mt-0.5" />}
             </div>
-          ))}
-        </div>
-
-        <div className="my-4 grid grid-cols-2 gap-2.5">
-          <Fact value={`${fmtNum(o.center_distance_mi, 2)} mi`} label="Center distance" />
-          <Fact value={fmtDistance(o.closest_distance_mi)} label="Closest points" />
-          <Fact value={o.in_service_gap_days === null ? '—' : fmtNum(o.in_service_gap_days)} label="Days between in-service" />
-          {live ? <Fact value="—" label="Confidence (stored list only)" /> : <Fact value={<ConfidenceBadge level={o.location_confidence} suffix={false} />} label="Location confidence" />}
+          </div>
         </div>
 
         {!live && (
-          <>
-            <div className="mb-3 rounded-xl border border-brand-pink/70 bg-brand-pink-dim px-4 py-3">
-              <div className="mb-1 text-[12.5px] font-bold">What could be shared</div>
-              <div className="text-[12.5px] text-fg/90">{o.shareable}</div>
+          <div className="tile flex items-start gap-3 p-4">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.07]">
+              <Users className="h-3.5 w-3.5 text-fg" aria-hidden="true" />
+            </span>
+            <div>
+              <div className="text-[13px] font-semibold">What could be shared</div>
+              <div className="text-[13px] text-fg-dim">{o.shareable}</div>
             </div>
-            <div className="mb-4 flex flex-wrap gap-1.5">
-              <Pill tone={o.build_windows_overlap ? 'teal' : 'default'}>
-                <CalendarCheck2 className="h-3 w-3" /> {o.build_windows_overlap ? 'Build windows overlap' : 'Build windows don’t overlap'}
-              </Pill>
-              {o.either_already_in_service && <Pill>One is already in service</Pill>}
-              {o.override_involved && (
-                <Pill tone="amber">
-                  <Hand className="h-3 w-3" /> Hand-placed location
-                </Pill>
-              )}
-              {o.user_data_involved && (
-                <Pill tone="purple">
-                  <Users className="h-3 w-3" /> Community data
-                </Pill>
-              )}
-            </div>
-            {o.shared_row_acres_upper_bound !== null && (
-              <div className="mb-4 rounded-xl border border-ink-500 bg-ink-700 px-4 py-3 text-[12.5px]">
-                <div className="eyebrow mb-1 text-fg-faint">Shared right-of-way (upper bound)</div>
-                <b className="font-display text-base">{fmtNum(o.shared_row_acres_upper_bound, 1)} acres</b>
-                {o.shared_row_value_usd !== null && <span className="ml-2 text-brand-teal">≈ {fmtUsd(o.shared_row_value_usd)}</span>}
-              </div>
-            )}
-          </>
+          </div>
         )}
-        <p className="text-[11.5px] text-fg-faint">{fmtGap(o.in_service_gap_days)} between in-service dates.</p>
+
+        {/* Headline numbers */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="tile-pink px-4 py-3.5">
+            <div className="text-[12px] font-semibold opacity-70">Distance</div>
+            <div className="text-2xl font-bold">{fmtNum(o.center_distance_mi, 2)} mi</div>
+            <div className="text-[11px] opacity-70">Closest points {fmtDistance(o.closest_distance_mi)}</div>
+          </div>
+          <div className="tile-blue px-4 py-3.5">
+            <div className="text-[12px] font-semibold opacity-70">In service apart</div>
+            <div className="text-2xl font-bold">{gapMonths === null ? '—' : gapMonths < 1 ? `${o.in_service_gap_days} d` : `${gapMonths} mo`}</div>
+            <div className="text-[11px] opacity-70">{o.in_service_gap_days === null ? 'Dates unknown' : `${fmtNum(o.in_service_gap_days)} days`}</div>
+          </div>
+        </div>
+
+        {/* Timeline */}
+        <div className="tile p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-[13px] font-semibold">Timeline</span>
+            {!live && (
+              <Pill tone={o.build_windows_overlap ? 'teal' : 'default'}>
+                <CalendarCheck2 className="h-3 w-3" /> {o.build_windows_overlap ? 'Build windows overlap' : 'Build windows apart'}
+              </Pill>
+            )}
+          </div>
+          <ol className="relative ml-2 border-l border-white/[0.1]">
+            {events.map((e, i) =>
+              e.kind === 'today' ? (
+                <li key={i} className="relative -ml-px mb-3 pl-5">
+                  <span className="absolute -left-[5px] top-1 h-2.5 w-2.5 rounded-full bg-[#8B7CF6] ring-4 ring-[#8B7CF6]/20" />
+                  <span className="rounded-full bg-[#8B7CF6]/20 px-2 py-0.5 text-[11px] font-semibold text-[#C9C2FB]">Today</span>
+                </li>
+              ) : (
+                <li key={i} className="relative mb-3 pl-5 last:mb-0">
+                  <span
+                    className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 ${e.kind === 'done' ? 'bg-fg' : 'bg-transparent'}`}
+                    style={{ borderColor: colors[e.p.utility_id] ?? '#8C96AD' }}
+                  />
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-[13px] font-semibold">
+                      <UtilityTag id={e.p.utility_id} colors={colors} /> {e.what}
+                    </span>
+                    <span className="shrink-0 text-[11px] text-fg-faint">{e.when}</span>
+                  </div>
+                  <div className="truncate text-[12px] text-fg-dim">{tidyName(e.p.name)}</div>
+                </li>
+              ),
+            )}
+          </ol>
+        </div>
+
+        {!live && (o.override_involved || o.user_data_involved || o.either_already_in_service) && (
+          <div className="flex flex-wrap gap-1.5">
+            {o.either_already_in_service && <Pill>One is already in service</Pill>}
+            {o.override_involved && (
+              <Pill tone="amber">
+                <Hand className="h-3 w-3" /> Hand-placed location
+              </Pill>
+            )}
+            {o.user_data_involved && (
+              <Pill tone="purple">
+                <Users className="h-3 w-3" /> Community data
+              </Pill>
+            )}
+          </div>
+        )}
+
+        {!live && o.shared_row_acres_upper_bound !== null && (
+          <div className="tile-mint px-4 py-3.5">
+            <div className="text-[12px] font-semibold opacity-70">Shared right-of-way (upper bound)</div>
+            <div className="text-xl font-bold">
+              {fmtNum(o.shared_row_acres_upper_bound, 1)} acres
+              {o.shared_row_value_usd !== null && <span className="ml-2 text-[13px] font-semibold opacity-80">≈ {fmtUsd(o.shared_row_value_usd)}</span>}
+            </div>
+          </div>
+        )}
       </div>
-      <div className="flex gap-2 border-t border-ink-500 bg-ink-700 px-5 py-4">
+
+      <div className="flex flex-col gap-2 border-t border-white/[0.06] px-5 py-4 sm:flex-row">
         {orbiting ? (
           <button type="button" className="btn-ghost flex-1" onClick={onStop}>
             <Square className="h-3.5 w-3.5" /> Stop orbit
@@ -703,24 +789,15 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
           </button>
         )}
         {live ? (
-          <span className="btn-ghost flex-1 cursor-default text-center text-[11.5px]" title="Live results aren't stored, so they have no detail page">
+          <span className="btn-ghost flex-1 cursor-default text-center text-[12px]" title="Live results aren't stored, so they have no detail page">
             Live: no detail page
           </span>
         ) : (
-          <a className="btn-pink flex-1" href={`/overlap/?id=${o.overlap_id}`}>
+          <a className="btn-primary flex-1" href={`/overlap/?id=${o.overlap_id}`}>
             Full detail <ExternalLink className="h-3.5 w-3.5" />
           </a>
         )}
       </div>
-    </div>
-  )
-}
-
-function Fact({ value, label }) {
-  return (
-    <div className="rounded-xl bg-ink-700 px-3 py-2.5 text-center">
-      <div className="font-display text-[17px] font-bold">{value}</div>
-      <div className="mt-0.5 text-[10.5px] text-fg-faint">{label}</div>
     </div>
   )
 }

@@ -78,7 +78,7 @@ export default function Contribute() {
 
           <form onSubmit={submit} noValidate className="card space-y-7 p-6">
             <Step n="1" title="Download the template">
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-ink-700 px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/[0.04] px-4 py-3">
                 <p className="text-[12.5px] text-fg-dim">
                   One row per project. Location: <b className="text-fg">lat_a/lon_a</b> (a substation), plus <b className="text-fg">lat_b/lon_b</b> for a line, or{' '}
                   <b className="text-fg">geometry_wkt</b>. Optional <b className="text-fg">project_type</b>: line_rebuild, new_line, substation, area_package
@@ -103,7 +103,7 @@ export default function Contribute() {
                   pick(e.dataTransfer.files?.[0])
                 }}
                 className={`flex cursor-pointer flex-col items-center rounded-xl border-[1.5px] border-dashed px-6 py-8 text-center transition-colors ${
-                  drag ? 'border-brand-teal bg-brand-teal-dim/40' : show('file') ? 'border-brand-pink' : 'border-ink-500 hover:border-fg-faint'
+                  drag ? 'border-brand-teal bg-brand-teal-dim/40' : show('file') ? 'border-brand-pink' : 'border-white/[0.07] hover:border-fg-faint'
                 }`}
               >
                 <input ref={fileInput} type="file" accept=".csv,text/csv" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
@@ -224,7 +224,7 @@ function Step({ n, title, children }) {
   return (
     <section>
       <h2 className="mb-3 flex items-center gap-2.5 font-sans text-[13.5px] font-bold">
-        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-ink-600 text-[11px] text-fg-dim">{n}</span>
+        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/[0.07] text-[11px] text-fg-dim">{n}</span>
         {title}
       </h2>
       {children}
@@ -254,9 +254,9 @@ function FieldError({ msg }) {
 function RowErrors({ errors }) {
   if (!errors?.length) return null
   return (
-    <div className="scroll-thin mt-3 max-h-56 overflow-y-auto rounded-lg border border-ink-500">
+    <div className="scroll-thin mt-3 max-h-56 overflow-y-auto rounded-lg border border-white/[0.07]">
       <table className="w-full text-left text-[12px]">
-        <thead className="sticky top-0 bg-ink-700 text-fg-faint">
+        <thead className="sticky top-0 bg-white/[0.04] text-fg-faint">
           <tr>
             <th scope="col" className="px-3 py-2 font-semibold">Row</th>
             <th scope="col" className="px-3 py-2 font-semibold">Project</th>
