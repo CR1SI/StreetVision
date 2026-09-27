@@ -1,34 +1,44 @@
 """
-Lightweight zero-dependency dev server for StreetVision.
+Lightweight zero-dependency server for StreetVision.
 Serves the pre-computed processed datasets (GeoJSON/CSV) at the FastAPI-compatible endpoints:
   - /api/health
   - /api/utilities
   - /api/projects
+  - /api/projects/near
   - /api/overlaps
   - /api/overlaps/<id>
+  - /api/overlaps/live
   - /api/datasets
+  - /api/datasets/template
+And serves the production frontend static web build from frontend/web.
 """
 import csv
 import json
+import math
+import mimetypes
 import os
 import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data" / "processed"
+WEB_DIR = BASE_DIR.parent / "frontend" / "web"
 
 # Load projects_standard.csv
 projects_by_key = {}
-with open(DATA_DIR / "projects_standard.csv", encoding="utf-8") as f:
-    for row in csv.DictReader(f):
-        key = (row["utility_id"], row["project_id"])
-        projects_by_key[key] = row
+if (DATA_DIR / "projects_standard.csv").exists():
+    with open(DATA_DIR / "projects_standard.csv", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            key = (row["utility_id"], row["project_id"])
+            projects_by_key[key] = row
 
 # Load projects.geojson
-with open(DATA_DIR / "projects.geojson", encoding="utf-8") as f:
-    raw_projects_geojson = json.load(f)
+raw_projects_geojson = {"type": "FeatureCollection", "features": []}
+if (DATA_DIR / "projects.geojson").exists():
+    with open(DATA_DIR / "projects.geojson", encoding="utf-8") as f:
+        raw_projects_geojson = json.load(f)
 
 projects_features = []
 for feat in raw_projects_geojson["features"]:
@@ -45,8 +55,10 @@ for feat in raw_projects_geojson["features"]:
     })
 
 # Load overlaps.geojson
-with open(DATA_DIR / "overlaps.geojson", encoding="utf-8") as f:
-    raw_overlaps_geojson = json.load(f)
+raw_overlaps_geojson = {"type": "FeatureCollection", "features": []}
+if (DATA_DIR / "overlaps.geojson").exists():
+    with open(DATA_DIR / "overlaps.geojson", encoding="utf-8") as f:
+        raw_overlaps_geojson = json.load(f)
 
 SHAREABLE = {
     "touching/crossing": "Coordinate outages and crossing structures",
@@ -62,6 +74,14 @@ def get_window(proj):
     if s or e:
         return f"{s}-{e}"
     return None
+
+def haversine_mi(lat1, lon1, lat2, lon2):
+    r = 3958.8  # Earth radius in miles
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2)**2
+    return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 overlaps_list = []
 for i, feat in enumerate(raw_overlaps_geojson["features"]):
@@ -106,6 +126,10 @@ for i, feat in enumerate(raw_overlaps_geojson["features"]):
     }
     overlaps_list.append(overlap_item)
 
+TEMPLATE_CSV = """utility_id,project_id,name,description,status,kv,in_service_date,in_service_date_updated,build_start,build_end,endpoint_a,lat_a,lon_a,endpoint_b,lat_b,lon_b,geometry_wkt,region,location_confidence,confidence_note,is_override,corridor_group,source_name
+EXAMPLE,EX-001,Example A - Example B 230 kV rebuild,,,230,2028-06-01,,2027,2028,Example A,32.30,-81.00,Example B,32.40,-81.10,,SC,medium,,False,,Example Utility 2028 Filing
+EXAMPLE,EX-002,Example C substation expansion,,,115,2029-12-31,,,Example C,32.50,-81.20,,,,,,SC,medium,,False,,Example Utility 2028 Filing
+""".encode("utf-8")
 
 def _project_out(csv_row, ref):
     """Build a ProjectOut-compatible dict from a projects_standard.csv row and a ProjectRef."""
@@ -116,7 +140,7 @@ def _project_out(csv_row, ref):
         "description": csv_row.get("description"),
         "status": csv_row.get("status"),
         "region": csv_row.get("region"),
-        "kv": int(csv_row["kv"]) if csv_row.get("kv") else None,
+        "kv": int(float(csv_row["kv"])) if csv_row.get("kv") else None,
         "in_service_date": csv_row.get("in_service_date") or None,
         "in_service_date_updated": csv_row.get("in_service_date_updated") or None,
         "build_start": int(csv_row["build_start"]) if csv_row.get("build_start") else None,
@@ -132,6 +156,13 @@ def _project_out(csv_row, ref):
             float(csv_row.get("lat_a", 0) or 0),
         ],
     }
+
+CONF_LEVELS = ["none", "low", "medium", "high"]
+
+def allowed_conf(min_conf: str) -> list[str]:
+    if min_conf not in CONF_LEVELS:
+        return CONF_LEVELS
+    return CONF_LEVELS[CONF_LEVELS.index(min_conf):]
 
 class ApiHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
@@ -153,10 +184,40 @@ class ApiHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def serve_static(self, rel_path):
+        clean_path = unquote(rel_path).lstrip("/")
+        target = WEB_DIR / clean_path
+        if not clean_path or target.is_dir():
+            target = target / "index.html"
+        if not target.is_file():
+            # Fallback to index.html for client-side routing if exists
+            target = WEB_DIR / "index.html"
+        if not target.is_file():
+            self.send_json({"detail": "Not found"}, 404)
+            return
+
+        mime_type, _ = mimetypes.guess_type(str(target))
+        mime_type = mime_type or "application/octet-stream"
+        try:
+            with open(target, "rb") as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", mime_type)
+            self.send_header("Content-Length", str(len(content)))
+            self.send_cors_headers()
+            self.end_headers()
+            self.wfile.write(content)
+        except Exception as e:
+            self.send_json({"detail": str(e)}, 500)
+
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/")
         qs = parse_qs(parsed.query)
+
+        if not path.startswith("/api"):
+            self.serve_static(path)
+            return
 
         if path == "/api/health":
             self.send_json({
@@ -187,22 +248,57 @@ class ApiHandler(BaseHTTPRequestHandler):
             utils_param = qs.get("utilities", [None])[0]
             selected_utils = [u.strip().upper() for u in utils_param.split(",") if u.strip()] if utils_param else []
             min_conf = qs.get("min_confidence", ["none"])[0]
+            hide_in_service = qs.get("hide_in_service", ["false"])[0].lower() in ("true", "1")
 
             feats = projects_features
             if selected_utils:
                 feats = [f for f in feats if f["properties"]["utility_id"] in selected_utils]
+            if min_conf and min_conf != "none":
+                valid_confs = allowed_conf(min_conf)
+                feats = [f for f in feats if f["properties"].get("location_confidence", "none") in valid_confs]
+            if hide_in_service:
+                feats = [f for f in feats if not f["properties"].get("in_service_passed", False)]
 
             self.send_json({
                 "type": "FeatureCollection",
                 "features": feats
             })
-        elif path == "/api/overlaps":
+        elif path == "/api/projects/near":
+            lat = float(qs.get("lat", [0])[0])
+            lon = float(qs.get("lon", [0])[0])
+            radius_mi = float(qs.get("radius_mi", [25])[0])
+            utils_param = qs.get("utilities", [None])[0]
+            selected_utils = [u.strip().upper() for u in utils_param.split(",") if u.strip()] if utils_param else []
+
+            results = []
+            for f in projects_features:
+                p = f["properties"]
+                if selected_utils and p["utility_id"] not in selected_utils:
+                    continue
+                clon, clat = p["center"]
+                if not clat or not clon:
+                    continue
+                dist = haversine_mi(lat, lon, clat, clon)
+                if dist <= radius_mi:
+                    results.append({
+                        "utility_id": p["utility_id"],
+                        "project_id": p["project_id"],
+                        "name": p["name"],
+                        "distance_mi": round(dist, 2),
+                        "center": [clon, clat]
+                    })
+            results.sort(key=lambda r: r["distance_mi"])
+            self.send_json(results)
+        elif path in ("/api/overlaps", "/api/overlaps/live"):
             tier = qs.get("tier", [None])[0]
             max_dist = float(qs.get("max_distance_mi", [25])[0])
             utils_param = qs.get("utilities", [None])[0]
             selected_utils = [u.strip().upper() for u in utils_param.split(",") if u.strip()] if utils_param else []
+            min_conf = qs.get("min_confidence", [None])[0]
+            hide_in_service = qs.get("hide_in_service", ["false"])[0].lower() in ("true", "1")
+            limit = int(qs.get("limit", [500])[0])
 
-            results = overlaps_list
+            results = list(overlaps_list)
             if selected_utils:
                 if len(selected_utils) == 1:
                     results = [o for o in results if o["a"]["utility_id"] in selected_utils or o["b"]["utility_id"] in selected_utils]
@@ -212,11 +308,16 @@ class ApiHandler(BaseHTTPRequestHandler):
                 results = [o for o in results if o["proximity_tier"] == tier]
             if max_dist < 25:
                 results = [o for o in results if o["center_distance_mi"] <= max_dist]
-            hide_in_service = qs.get("hide_in_service", ["false"])[0].lower() in ("true", "1")
+            if min_conf and min_conf != "none":
+                valid_confs = allowed_conf(min_conf)
+                results = [o for o in results if o.get("location_confidence", "none") in valid_confs]
             if hide_in_service:
                 results = [o for o in results if not o["either_already_in_service"]]
 
-            # Re-rank
+            if path == "/api/overlaps/live":
+                results = [{**o, "live": True} for o in results]
+
+            results = results[:limit]
             for rank, item in enumerate(results, start=1):
                 item["rank"] = rank
                 item["label"] = f"OVL_{rank}"
@@ -238,7 +339,8 @@ class ApiHandler(BaseHTTPRequestHandler):
             except Exception:
                 self.send_json({"detail": "Invalid ID"}, 400)
         elif path == "/api/datasets":
-            self.send_json([
+            source = qs.get("source", ["all"])[0]
+            all_datasets = [
                 {
                     "dataset_id": 1,
                     "utility_id": "DESC",
@@ -261,13 +363,31 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "created_at": "2026-09-26T00:00:00Z",
                     "projects": 22
                 }
-            ])
+            ]
+            if source == "user":
+                res = [d for d in all_datasets if d["kind"] == "user_submitted"]
+            elif source == "official":
+                res = [d for d in all_datasets if d["kind"] == "official"]
+            else:
+                res = all_datasets
+            self.send_json(res)
+        elif path == "/api/datasets/template":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/csv")
+            self.send_header("Content-Disposition", "attachment; filename=projects_template.csv")
+            self.send_header("Content-Length", str(len(TEMPLATE_CSV)))
+            self.send_cors_headers()
+            self.end_headers()
+            self.wfile.write(TEMPLATE_CSV)
         else:
             self.send_json({"detail": "Not found"}, 404)
 
 if __name__ == "__main__":
-    port = 8001
+    port = int(os.environ.get("PORT", 8001))
     server = HTTPServer(("127.0.0.1", port), ApiHandler)
-    print(f"StreetVision mock API running on http://127.0.0.1:{port}/")
+    print(f"StreetVision API & web server running on http://127.0.0.1:{port}/")
     sys.stdout.flush()
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
