@@ -21,6 +21,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.exc import IntegrityError
 
 from api.models import STANDARD_COLUMNS, ProjectIn, RowError
+from api.project_types import classify
 
 MAX_ROWS = 20_000
 STORED_RADIUS_MI = 25.0
@@ -137,17 +138,18 @@ def ingest(conn: Connection, rows: list[dict], *, utility_id: str, utility_name:
         geom, center = geometry_and_center(p)
         params.append({**p.model_dump(exclude={"geometry_wkt", "lat_a", "lon_a", "lat_b", "lon_b", "source_name"}),
                        "dataset_id": dataset_id, "name_a": p.endpoint_a, "name_b": p.endpoint_b,
+                       "project_type": p.project_type or classify(p.name, p.description),
                        "geom": geom.wkt, "clon": center[0], "clat": center[1]})
     try:
         conn.execute(text("""
             INSERT INTO projects (utility_id, project_id, dataset_id, name, description, status, region, kv,
                                   in_service_date, in_service_date_updated, build_start, build_end,
                                   location_confidence, is_override, confidence_note, corridor_group,
-                                  name_a, name_b, geom, center)
+                                  project_type, name_a, name_b, geom, center)
             VALUES (:utility_id, :project_id, :dataset_id, :name, :description, :status, :region, :kv,
                     :in_service_date, :in_service_date_updated, :build_start, :build_end,
                     :location_confidence, :is_override, :confidence_note, :corridor_group,
-                    :name_a, :name_b, ST_GeomFromText(:geom, 4326), ST_SetSRID(ST_MakePoint(:clon, :clat), 4326))"""),
+                    :project_type, :name_a, :name_b, ST_GeomFromText(:geom, 4326), ST_SetSRID(ST_MakePoint(:clon, :clat), 4326))"""),
             params)
     except IntegrityError as exc:
         raise IngestError(

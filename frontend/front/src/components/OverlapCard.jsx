@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import { CalendarCheck2, Hand, Users } from 'lucide-react'
 import { fmtGap, fmtNum, tidyName } from '../lib/format'
+import { TypeIcon, typeLabel } from '../lib/projectTypes'
 import { ConfidenceBadge, Pill, TierLabel, UtilityTag } from './ui'
 
 /** One row of the ranked coordination list. Works for stored and live (radius > 25 mi) results. */
@@ -25,13 +26,13 @@ export const OverlapCard = forwardRef(function OverlapCard({ o, colors, selected
         </span>
         <span className="shrink-0 text-[10.5px] text-fg-faint">{fmtGap(o.in_service_gap_days).replace(/ \(.*\)/, '')}</span>
       </div>
-      <div className="mb-0.5 truncate text-[13px] font-semibold" title={o.a.name}>
+      <div className="mb-0.5 truncate text-[13px] font-semibold" title={`${o.a.name} (${typeLabel(o.a.project_type)})`}>
         <UtilityTag id={o.a.utility_id} colors={colors} />
-        &nbsp; {tidyName(o.a.name)}
+        &nbsp;<TypeIcon type={o.a.project_type} className="mb-0.5 inline h-3.5 w-3.5 text-fg-dim" />&nbsp;{tidyName(o.a.name)}
       </div>
-      <div className="mb-2.5 truncate text-[13px] font-semibold" title={o.b.name}>
+      <div className="mb-2.5 truncate text-[13px] font-semibold" title={`${o.b.name} (${typeLabel(o.b.project_type)})`}>
         <UtilityTag id={o.b.utility_id} colors={colors} />
-        &nbsp; {tidyName(o.b.name)}
+        &nbsp;<TypeIcon type={o.b.project_type} className="mb-0.5 inline h-3.5 w-3.5 text-fg-dim" />&nbsp;{tidyName(o.b.name)}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-[11.5px] text-fg-dim">

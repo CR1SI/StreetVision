@@ -8,6 +8,7 @@ import { useUtilities } from '../hooks/useUtilities'
 import { api } from '../lib/api'
 import { fmtDate, fmtDateTime, fmtNum, tidyName } from '../lib/format'
 import { bounds } from '../lib/geo'
+import { typeLabel } from '../lib/projectTypes'
 import { datasetFeatures, downloadDataset } from '../lib/datasetDownload'
 
 export default function Dataset() {
@@ -191,6 +192,7 @@ function ProjectTable({ features, loading, involved }) {
   const cols = [
     ['project_id', 'ID'],
     ['name', 'Project'],
+    ['project_type', 'Type'],
     ['kv', 'kV'],
     ['in_service_date', 'In service'],
     ['location_confidence', 'Location'],
@@ -218,6 +220,7 @@ function ProjectTable({ features, loading, involved }) {
                 <div className="font-semibold">{tidyName(p.name)}</div>
                 {p.description && <div className="line-clamp-1 max-w-xl text-[11.5px] text-fg-faint">{p.description}</div>}
               </td>
+              <td className="whitespace-nowrap border-b border-ink-700 px-3 py-2.5 text-fg-dim">{typeLabel(p.project_type)}</td>
               <td className="border-b border-ink-700 px-3 py-2.5 text-fg-dim">{p.kv ?? '—'}</td>
               <td className="whitespace-nowrap border-b border-ink-700 px-3 py-2.5 text-fg-dim">{fmtDate(p.in_service_date)}</td>
               <td className="border-b border-ink-700 px-3 py-2.5">

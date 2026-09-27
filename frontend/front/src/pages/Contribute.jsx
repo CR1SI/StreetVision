@@ -81,7 +81,8 @@ export default function Contribute() {
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-ink-700 px-4 py-3">
                 <p className="text-[12.5px] text-fg-dim">
                   One row per project. Location: <b className="text-fg">lat_a/lon_a</b> (a substation), plus <b className="text-fg">lat_b/lon_b</b> for a line, or{' '}
-                  <b className="text-fg">geometry_wkt</b>.
+                  <b className="text-fg">geometry_wkt</b>. Optional <b className="text-fg">project_type</b>: line_rebuild, new_line, substation, area_package
+                  (left blank, it’s worked out from the project name).
                 </p>
                 <a href={api.templateUrl} className="btn-ghost py-2 text-xs" download>
                   <Download className="h-3.5 w-3.5" /> projects_template.csv

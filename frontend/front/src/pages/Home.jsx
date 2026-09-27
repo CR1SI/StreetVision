@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import {
-  ArrowLeft, Box, CalendarCheck2, ExternalLink, Hand, Info, Maximize2, Orbit, Plus, RotateCcw, SlidersHorizontal, Square, Users, WifiOff, X,
+  ArrowLeft, Box, CalendarCheck2, ExternalLink, Hand, Info, Loader2, Maximize2, Orbit, Plus, RotateCcw, SlidersHorizontal, Square, Users, WifiOff, X, Zap,
 } from 'lucide-react'
 import { Layout } from '../components/Layout'
 import { OverlapCard } from '../components/OverlapCard'
@@ -13,8 +13,10 @@ import { api } from '../lib/api'
 import { PALETTE, TIERS } from '../lib/colors'
 import { fmtDate, fmtDistance, fmtGap, fmtNum, fmtUsd, fmtWindow, tidyName } from '../lib/format'
 import { bounds, connectorsToGeoJSON, midpoint, overlapKey } from '../lib/geo'
-import { drawConnectors, drawProjects, projectKey, selectFeature, setColumns } from '../lib/mapLayers'
-import { esc, nearPopup, projectPopup } from '../lib/popups'
+import { drawConnectors, drawProjects, PROJECT_HIT_LAYERS, projectKey, selectFeature, setModelMode } from '../lib/mapLayers'
+import { createModelsLayer, MODELS_LAYER } from '../lib/models3d'
+import { PROJECT_TYPES } from '../lib/projectTypes'
+import { esc, nearPopup, projectPopup, substationPopup } from '../lib/popups'
 
 const CONF_OPTIONS = [
   { v: 'none', l: 'Any confidence' },
@@ -48,11 +50,13 @@ const orbitZoom = (mi) => Math.max(8.2, Math.min(12.8, 12.6 - Math.log2(Math.max
 export default function Home() {
   const container = useRef(null)
   const { mapRef, isLoaded, online, orbiting, fitBounds, startOrbit, stopOrbit } = useMapLibre(container)
+  const [threeD, setThreeD] = useState(false)
+  const [modelState, setModelState] = useState('idle') // idle | loading | ready | error
+  const modelsRef = useRef(null)
   const utils = useUtilities()
   const [filters, setFilters] = useState(initialFilters)
   const [radiusDraft, setRadiusDraft] = useState(filters.radius)
   const [selectedKey, setSelectedKey] = useState(() => (param('overlap') ? Number(param('overlap')) : null))
-  const [threeD, setThreeD] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(() => window.innerWidth >= 640)
   const live = filters.radius > 25
 
@@ -138,7 +142,7 @@ export default function Home() {
   useEffect(() => {
     const map = mapRef.current
     if (!isLoaded || !map || !projects.data) return
-    drawProjects(map, projects.data, utils.colors, { columns: threeD })
+    drawProjects(map, projects.data, utils.colors)
     if (!fittedRef.current && projects.data.features.length && !param('overlap')) {
       fittedRef.current = true
       fitBounds(bounds(projects.data.features), { duration: 0, padding: FIT_PADDING() })
@@ -151,12 +155,45 @@ export default function Home() {
     drawConnectors(map, connectorsToGeoJSON(list))
   }, [isLoaded, list, mapRef])
 
+  // 3D models (three.js, loaded the first time 3D is switched on).
   useEffect(() => {
     const map = mapRef.current
     if (!isLoaded || !map) return
-    setColumns(map, threeD)
-    if (!orbiting) map.easeTo({ pitch: threeD ? 50 : 0, duration: 700 })
+    let cancelled = false
+    if (threeD) {
+      setModelState((s) => (s === 'ready' ? s : 'loading'))
+      ;(async () => {
+        if (!modelsRef.current) modelsRef.current = await createModelsLayer(map)
+        if (cancelled) return
+        if (projects.data) modelsRef.current.update(projects.data, utils.colors)
+        if (!map.getLayer(MODELS_LAYER)) map.addLayer(modelsRef.current.layer, map.getLayer('project-icons-line') ? 'project-icons-line' : undefined)
+        else map.setLayoutProperty(MODELS_LAYER, 'visibility', 'visible')
+        setModelMode(map, true)
+        setModelState('ready')
+      })().catch((err) => {
+        console.error('3D models failed to load', err)
+        if (!cancelled) {
+          setModelState('error')
+          setThreeD(false)
+        }
+      })
+    } else if (map.getLayer(MODELS_LAYER)) {
+      map.setLayoutProperty(MODELS_LAYER, 'visibility', 'none')
+      setModelMode(map, false)
+    }
+    if (!orbiting) map.easeTo({ pitch: threeD ? 55 : 0, duration: 800 })
+    return () => {
+      cancelled = true
+    }
   }, [threeD, isLoaded]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep the models in step with the filters and colors.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!threeD || modelState !== 'ready' || !modelsRef.current || !projects.data || !map) return
+    modelsRef.current.update(projects.data, utils.colors)
+    map.triggerRepaint()
+  }, [projects.data, utils.colors, threeD, modelState, mapRef])
 
   // Highlight the selected connector and both of its projects.
   const selRef = useRef({ conn: null, projects: [] })
@@ -205,12 +242,12 @@ export default function Home() {
     const popup = new maplibregl.Popup({ closeButton: true, maxWidth: '300px', offset: 10 })
     let hovered = null
     let clickSeq = 0 // ignore 'what's near here' responses for an earlier click
-    const layers = () => ['connectors-hit', 'project-lines', 'project-points', 'project-columns'].filter((l) => map.getLayer(l))
+    const layers = () => ['connectors-hit', ...PROJECT_HIT_LAYERS].filter((l) => map.getLayer(l))
 
     const onMove = (e) => {
       const f = map.queryRenderedFeatures(e.point, { layers: layers() })[0]
       map.getCanvas().style.cursor = f ? 'pointer' : ''
-      const next = f ? { source: f.source === 'project-columns' ? null : f.source, id: f.id } : null
+      const next = f ? { source: f.source === 'substations' ? null : f.source, id: f.id } : null
       if (hovered && (!next || hovered.id !== next.id)) map.setFeatureState(hovered, { hover: false })
       if (next?.source && next.id !== undefined) {
         map.setFeatureState(next, { hover: true })
@@ -228,6 +265,11 @@ export default function Home() {
           select(o, { orbit: false })
           cardRefs.current[keyOf(o)]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
         }
+        return
+      }
+      if (f?.layer.id === 'substations') {
+        clickSeq += 1
+        popup.setLngLat(f.geometry.coordinates).setHTML(substationPopup(f.properties, colorsRef.current)).addTo(map)
         return
       }
       if (f) {
@@ -379,8 +421,12 @@ export default function Home() {
 
           {/* Right-side map tools (under the zoom control) */}
           <div className="absolute right-[10px] top-[118px] z-20 flex flex-col overflow-hidden rounded-[10px] border border-ink-500 bg-ink-800/95 shadow-xl">
-            <MapTool label={threeD ? 'Switch to 2D' : 'Switch to 3D kV columns'} onClick={() => setThreeD((v) => !v)} active={threeD}>
-              {threeD ? <Square className="h-4 w-4" /> : <Box className="h-4 w-4" />}
+            <MapTool
+              label={threeD ? 'Switch to flat map' : modelState === 'error' ? '3D models could not load' : 'Show 3D models'}
+              onClick={() => setThreeD((v) => !v)}
+              active={threeD}
+            >
+              {modelState === "loading" && threeD ? <Loader2 className="h-4 w-4 animate-spin" /> : threeD ? <Square className="h-4 w-4" /> : <Box className="h-4 w-4" />}
             </MapTool>
             <MapTool label="Fit all projects" onClick={fitAll}>
               <Maximize2 className="h-4 w-4" />
@@ -519,6 +565,34 @@ function Legend({ colors, list, threeD }) {
               ))}
             </div>
             <div className="space-y-1.5 border-t border-ink-500 pt-2.5">
+              <div className="eyebrow text-fg-faint">Project type (badge)</div>
+              {PROJECT_TYPES.filter((t) => t.key !== 'other').map((t) => (
+                <div key={t.key} className="flex items-center gap-2" title={t.hint}>
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-fg-dim text-ink-900">
+                    <t.Icon className="h-2.5 w-2.5" strokeWidth={3} aria-hidden="true" />
+                  </span>
+                  {t.label}
+                </div>
+              ))}
+              <div className="flex items-center gap-2" title="Where a planned line starts or ends">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border-2 border-fg-dim">
+                  <Zap className="h-2 w-2 text-fg-dim" strokeWidth={3} aria-hidden="true" />
+                </span>
+                Substation (line end)
+              </div>
+            </div>
+            {threeD && (
+              <div className="space-y-1 border-t border-ink-500 pt-2.5">
+                <div className="eyebrow text-fg-faint">3D models</div>
+                <div>Towers = line work along the route</div>
+                <div className="pl-2 text-fg-faint">orange band = rebuild · pink tip = new line</div>
+                <div>Large transformer = substation work</div>
+                <div>Fenced yard = substation (line end)</div>
+                <div>Bigger yard = area package</div>
+                <div className="text-fg-faint">Models are enlarged to stay visible</div>
+              </div>
+            )}
+            <div className="space-y-1.5 border-t border-ink-500 pt-2.5">
               <div className="eyebrow text-fg-faint">Overlap tier (dashed)</div>
               {TIERS.map((t) => (
                 <div key={t.key} className="flex items-center gap-2">
@@ -530,7 +604,7 @@ function Legend({ colors, list, threeD }) {
             <div className="space-y-1 border-t border-ink-500 pt-2.5 text-[11px] text-fg-faint">
               <div>Faded = low location confidence</div>
               <div>White ring / dashes = hand-placed location</div>
-              {threeD && <div>Column height = line voltage (kV)</div>}
+              <div>Badge color = utility</div>
               <div>Click empty map: what’s near here</div>
             </div>
           </div>

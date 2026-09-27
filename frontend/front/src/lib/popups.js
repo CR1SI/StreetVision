@@ -1,5 +1,6 @@
 import { CONFIDENCE } from './colors'
 import { fmtDate, fmtNum, tidyName } from './format'
+import { typeLabel } from './projectTypes'
 
 // MapLibre popups take HTML strings. Everything that comes from data is escaped here,
 // because uploaded datasets are user-controlled text.
@@ -27,6 +28,7 @@ export function projectPopup(p, colors, involved = []) {
   return `
     <div style="font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${esc(colors[p.utility_id] ?? '#8C96AD')}">${esc(p.utility_id)} · ${esc(p.project_id)}</div>
     <div style="font-size:13px;font-weight:700;margin:3px 0 8px;line-height:1.35">${esc(tidyName(p.name))}</div>
+    ${line('Type', esc(typeLabel(p.project_type)))}
     ${line('In service', esc(fmtDate(p.in_service_date)))}
     ${p.in_service_date_updated ? line('Updated date', esc(fmtDate(p.in_service_date_updated))) : ''}
     ${line('Build window', esc(window))}
@@ -34,6 +36,15 @@ export function projectPopup(p, colors, involved = []) {
     ${line('Location', `<span style="color:${c.fg}">${esc(c.label)}${p.is_override ? ' · hand-placed' : ''}</span>`)}
     ${p.source_kind === 'user_submitted' ? line('Source', '<span style="color:#B3AAF7">Community submitted</span>') : ''}
     ${pairs}`
+}
+
+/** A substation at the end of one or more planned lines. */
+export function substationPopup(s, colors) {
+  const n = Number(s.projects) || 1
+  return `
+    <div style="font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${esc(colors[s.utility_id] ?? '#8C96AD')}">${esc(s.utility_id)} · Substation</div>
+    <div style="font-size:13px;font-weight:700;margin:3px 0 6px;line-height:1.35">${esc(tidyName(s.name) || 'Unnamed substation')}</div>
+    <div style="color:#8C96AD">End point of ${n} planned line project${n > 1 ? 's' : ''}. Click a line or its badge for the project.</div>`
 }
 
 export function nearPopup(lngLat, results, radius) {

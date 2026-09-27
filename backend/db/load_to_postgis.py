@@ -25,6 +25,8 @@ def ensure_schema(conn, reset: bool):
     if reset or not exists:
         conn.exec_driver_sql((ROOT / "db" / "schema.sql").read_text(encoding="utf-8"))
         print("schema created" + (" (reset: user uploads removed)" if reset and exists else ""))
+    # Columns added after the first release, so an existing database keeps its user uploads.
+    conn.exec_driver_sql("ALTER TABLE projects ADD COLUMN IF NOT EXISTS project_type TEXT NOT NULL DEFAULT 'other'")
     conn.exec_driver_sql((ROOT / "db" / "functions.sql").read_text(encoding="utf-8"))   # always refresh the engine
 
 
