@@ -148,7 +148,7 @@ export default function Check() {
                   className="w-full bg-transparent text-[13px] placeholder:text-fg-faint focus:outline-none"
                 />
               </label>
-              <button type="submit" className="btn-pink px-5 shadow-2xl" disabled={geoBusy || !query.trim()}>
+              <button type="submit" className="btn-pink rounded-xl px-5 shadow-2xl" disabled={geoBusy || !query.trim()}>
                 {geoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Check'}
               </button>
             </div>
@@ -173,7 +173,7 @@ export default function Check() {
               </span>
             </div>
             {geoError && (
-              <p role="alert" className="mt-2 rounded-lg border border-brand-pink/60 bg-ink-800/95 px-3 py-2 text-[12px] text-brand-pink">
+              <p role="alert" className="mt-2 rounded-xl border border-brand-pink/60 bg-ink-800/95 px-3 py-2 text-[12px] text-brand-pink">
                 {geoError}
               </p>
             )}
@@ -182,10 +182,11 @@ export default function Check() {
 
         <aside className="scroll-thin flex min-h-0 flex-1 flex-col overflow-y-auto border-ink-500 bg-ink-800 lg:w-[440px] lg:flex-none lg:border-l" aria-live="polite">
           <div className="border-b border-ink-500 px-6 py-5">
-            <h1 className="mb-1 text-base font-bold">Coordination check</h1>
+            <h1 className="mb-1 text-base font-bold">Check an address</h1>
             <p className="mb-4 text-[12px] text-fg-dim">Is this location inside a zone where two utilities plan work close together? And why?</p>
-            <div className="flex items-center gap-2" role="radiogroup" aria-label="Search radius">
-              <span className="text-[11.5px] text-fg-faint">Radius</span>
+            <div className="flex items-center gap-3">
+              <span id="radius-label" className="text-[12px] text-fg-dim">Radius</span>
+              <div className="flex gap-1 rounded-xl border border-ink-500 bg-ink-700 p-1" role="radiogroup" aria-labelledby="radius-label">
               {RADII.map((r) => (
                 <button
                   key={r}
@@ -193,11 +194,12 @@ export default function Check() {
                   role="radio"
                   aria-checked={radius === r}
                   onClick={() => setRadius(r)}
-                  className={`chip ${radius === r ? 'bg-brand-pink text-white' : 'bg-ink-700 text-fg-dim hover:text-fg'}`}
+                  className={`chip min-h-[32px] ${radius === r ? 'bg-brand-pink text-white' : 'text-fg-dim hover:bg-ink-600 hover:text-fg'}`}
                 >
                   {r} mi
                 </button>
               ))}
+              </div>
             </div>
           </div>
 
@@ -205,7 +207,7 @@ export default function Check() {
             {!point && <Intro />}
             {point && (near.error || allOverlaps.error) && <ErrorState error={near.error || allOverlaps.error} onRetry={near.error ? near.reload : allOverlaps.reload} />}
             {point && !verdict && !near.error && !allOverlaps.error && (
-              <div className="flex items-center gap-2 text-sm text-fg-dim">
+              <div className="flex items-center gap-2 text-[13px] text-fg-dim">
                 <Loader2 className="h-4 w-4 animate-spin" /> Checking {radius} mi around {point.label}…
               </div>
             )}
@@ -219,11 +221,16 @@ export default function Check() {
 
 function Intro() {
   return (
-    <div className="space-y-4 text-[12.5px] leading-relaxed text-fg-dim">
+    <div className="space-y-4 text-[13px] leading-relaxed text-fg-dim">
       <div className="flex items-start gap-3">
         <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-pink" />
         <p>Search an address or ZIP, pick an example, or click anywhere on the map.</p>
       </div>
+      <details className="group rounded-xl border border-ink-500 bg-ink-700 px-4 py-3">
+        <summary className="cursor-pointer list-none text-[13px] font-semibold text-fg marker:hidden">
+          How it works <span className="ml-1 text-fg-faint group-open:hidden">+</span><span className="ml-1 hidden text-fg-faint group-open:inline">–</span>
+        </summary>
+        <div className="mt-3 space-y-3">
       <p>We look up every planned project within the radius (a PostGIS distance query), then check whether any of them belong to a flagged cross-utility overlap. The verdict explains itself with the same signals the ranking uses:</p>
       <ul className="space-y-2">
         <li><b className="text-fg">Distance</b> is the primary signal: under 25 miles counts as an overlap.</li>
@@ -231,6 +238,8 @@ function Intro() {
         <li><b className="text-fg">Timing</b> is secondary: days between in-service dates, and whether build windows overlap.</li>
         <li><b className="text-fg">Confidence</b> says how sure we are of each location.</li>
       </ul>
+        </div>
+      </details>
     </div>
   )
 }
@@ -249,26 +258,26 @@ function Verdict({ v, point, radius, colors }) {
   return (
     <div className="animate-in space-y-5">
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: meta.bg }}>
-          <Icon className="h-5 w-5" style={{ color: meta.color }} aria-hidden="true" />
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: meta.bg }}>
+          <Icon className="h-4 w-4" style={{ color: meta.color }} aria-hidden="true" />
         </span>
         <div>
-          <h2 className="font-sans text-[15px] font-bold" style={{ color: meta.color }}>
+          <h2 className="text-base font-bold" style={{ color: meta.color }}>
             {meta.title}
           </h2>
-          <p className="text-[11.5px] text-fg-faint">
+          <p className="text-[12px] text-fg-faint">
             Within {radius} mi of {point.label}
           </p>
         </div>
       </div>
-      <p className="text-[12.5px] leading-relaxed text-fg-dim">
+      <p className="text-[13px] leading-relaxed text-fg-dim">
         {meta.body} {v.nearby.length > 0 && `${v.nearby.length} planned project${v.nearby.length > 1 ? 's' : ''} from ${v.utilitiesNearby.join(' and ')} within ${radius} mi.`}
       </p>
 
       {top && (
         <div>
           <h3 className="eyebrow mb-2.5 text-fg-faint">Why: strongest signal</h3>
-          <ul className="space-y-2.5 text-[12.5px] text-fg-dim">
+          <ul className="space-y-2.5 text-[13px] text-fg-dim">
             <Reason color={tierColor(top.proximity_tier)}>
               <b className="text-fg">{fmtNum(top.center_distance_mi, 2)} mi apart</b> (center to center), closest points {fmtDistance(top.closest_distance_mi)}: tier{' '}
               <TierLabel tier={top.proximity_tier} className="!text-[11px]" />. {top.shareable}.
@@ -295,12 +304,12 @@ function Verdict({ v, point, radius, colors }) {
               <a key={o.overlap_id} href={`/overlap/?id=${o.overlap_id}`} className="block rounded-xl bg-ink-700 px-4 py-3 transition-colors hover:bg-ink-600">
                 <div className="mb-1.5 flex items-center justify-between">
                   <TierLabel tier={o.proximity_tier} />
-                  <span className="text-[10.5px] text-fg-faint">#{o.rank} · {fmtNum(o.center_distance_mi, 1)} mi</span>
+                  <span className="text-[11px] text-fg-faint">#{o.rank} · {fmtNum(o.center_distance_mi, 1)} mi</span>
                 </div>
-                <div className="truncate text-[12.5px] font-semibold">
+                <div className="mb-1 truncate text-[13px] font-semibold">
                   <UtilityTag id={o.a.utility_id} colors={colors} /> {tidyName(o.a.name)}
                 </div>
-                <div className="truncate text-[12.5px] font-semibold">
+                <div className="truncate text-[13px] font-semibold">
                   <UtilityTag id={o.b.utility_id} colors={colors} /> {tidyName(o.b.name)}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5">

@@ -1,11 +1,7 @@
-@import '@fontsource/manrope/400.css';
-@import '@fontsource/manrope/500.css';
-@import '@fontsource/manrope/600.css';
-@import '@fontsource/manrope/700.css';
-@import '@fontsource/manrope/800.css';
-@import '@fontsource/space-grotesk/500.css';
-@import '@fontsource/space-grotesk/600.css';
-@import '@fontsource/space-grotesk/700.css';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans/700.css';
 
 @tailwind base;
 @tailwind components;
@@ -19,6 +15,7 @@
   }
   body {
     @apply bg-ink font-sans text-fg antialiased;
+    font-variant-numeric: tabular-nums; /* distances and dates line up */
   }
   h1,
   h2,
@@ -33,10 +30,10 @@
 
 @layer components {
   .card {
-    @apply rounded-2xl border border-ink-500 bg-ink-800;
+    @apply rounded-xl border border-ink-500 bg-ink-800;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[13px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
     @apply btn bg-brand-teal text-[#06231F] hover:bg-[#5BE0D2];
@@ -54,16 +51,16 @@
     @apply btn border border-brand-pink bg-transparent text-brand-pink hover:bg-brand-pink-dim;
   }
   .input {
-    @apply w-full rounded-lg border border-ink-500 bg-ink-700 px-3 py-2.5 text-[13px] text-fg placeholder:text-fg-faint focus:border-brand-teal focus:outline-none;
+    @apply w-full rounded-xl border border-ink-500 bg-ink-700 px-3 py-2.5 text-[13px] text-fg placeholder:text-fg-faint focus:border-brand-teal focus:outline-none;
   }
   .label {
-    @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-fg-faint;
+    @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-fg-dim;
   }
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors;
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors;
   }
   .eyebrow {
-    @apply text-[10.5px] font-bold uppercase tracking-[0.06em];
+    @apply text-[11px] font-semibold uppercase tracking-[0.06em];
   }
   .scroll-thin {
     scrollbar-width: thin;
@@ -73,7 +70,7 @@
 
 /* ---------- MapLibre dark theme ---------- */
 .maplibregl-map {
-  font-family: Manrope, system-ui, sans-serif;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
   background: #171717;
 }
 .maplibregl-ctrl-group {

@@ -361,7 +361,7 @@ export default function Home() {
               </div>
 
               {filtersOpen && (
-                <div className="flex flex-wrap items-center gap-2 border-t border-ink-500 pt-2.5">
+                <div className="grid grid-cols-2 items-center gap-2 border-t border-ink-500 pt-2.5 sm:flex sm:flex-wrap">
                   <Select label="Source" value={filters.source} onChange={(v) => update({ source: v })} options={SOURCE_OPTIONS} />
                   <Select
                     label="Location confidence"
@@ -409,7 +409,7 @@ export default function Home() {
                       <RotateCcw className="h-3 w-3" aria-hidden="true" /> Reset
                     </button>
                   )}
-                  <p id="radius-hint" className="w-full text-[11px] text-fg-faint">
+                  <p id="radius-hint" className="col-span-2 w-full text-[11px] text-fg-faint">
                     {live
                       ? 'Over 25 mi: overlaps are recomputed live by PostGIS. Tier and confidence filters apply to the stored 25-mile list only.'
                       : '25 mi is the challenge’s overlap threshold. Drag past it to run the live PostGIS engine at a wider radius.'}
@@ -461,32 +461,32 @@ export default function Home() {
             <OverlapPanel o={selected} colors={utils.colors} orbiting={orbiting} onBack={() => select(null)} onOrbit={() => select(selected)} onStop={stopOrbit} />
           ) : (
             <>
-              <div className="border-b border-ink-500 px-5 pb-3.5 pt-5">
+              <div className="border-b border-ink-500 px-6 py-5">
                 <div className="mb-1 flex items-center justify-between">
                   <h1 className="text-base font-bold">Ranked opportunities</h1>
-                  <span className="rounded-full bg-ink-600 px-2.5 py-0.5 text-[11px] font-bold text-fg-dim">{overlaps.loading ? '…' : list.length}</span>
+                  <span className="rounded-full bg-ink-600 px-2.5 py-0.5 text-[11px] font-semibold text-fg-dim">{overlaps.loading ? '…' : list.length}</span>
                 </div>
                 <p className="text-xs text-fg-dim">
                   {filters.utilities.length ? filters.utilities.join(' × ') : 'All utilities'} · within {filters.radius} mi
                   {projectCount !== undefined && ` · ${projectCount} projects mapped`}
                 </p>
                 <p className="mt-1 flex items-center gap-1 text-[11px] text-fg-faint">
-                  <Info className="h-3 w-3" aria-hidden="true" /> Score = 70% closeness + 30% timing. Click a row to fly there.
+                  <Info className="h-3 w-3" aria-hidden="true" /> Ranked by closeness (70%) and timing (30%). Click a row to fly there.
                 </p>
               </div>
-              <div className="scroll-thin flex-1 space-y-2.5 overflow-y-auto px-4 py-3.5">
+              <div className="scroll-thin flex-1 space-y-3 overflow-y-auto px-6 py-5">
                 {overlaps.error && <ErrorState error={overlaps.error} onRetry={overlaps.reload} />}
                 {overlaps.loading && !overlaps.data && [0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-[118px]" />)}
                 {!overlaps.loading && !overlaps.error && list.length === 0 && (
                   <div className="card p-5 text-center">
-                    <p className="mb-1 text-sm font-bold">No overlaps match these filters</p>
+                    <p className="mb-1 text-[13px] font-semibold">No overlaps match these filters</p>
                     <p className="mb-4 text-xs text-fg-dim">Most project pairs don’t overlap, and that’s expected. Try loosening a filter.</p>
                     <button type="button" className="btn-ghost" onClick={resetFilters}>
                       <RotateCcw className="h-3.5 w-3.5" /> Reset filters
                     </button>
                   </div>
                 )}
-                <div className={overlaps.loading && overlaps.data ? 'space-y-2.5 opacity-50 transition-opacity' : 'space-y-2.5'}>
+                <div className={overlaps.loading && overlaps.data ? 'space-y-3 opacity-50 transition-opacity' : 'space-y-3'}>
                   {list.map((o) => (
                     <OverlapCard
                       key={keyOf(o)}
@@ -509,13 +509,13 @@ export default function Home() {
 
 function Select({ label, value, onChange, options, disabled }) {
   return (
-    <label className={`relative ${disabled ? 'opacity-40' : ''}`}>
+    <label className={`relative block sm:inline-block ${disabled ? 'opacity-40' : ''}`}>
       <span className="sr-only">{label}</span>
       <select
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="cursor-pointer appearance-none rounded-full border border-transparent bg-ink-700 py-1.5 pl-3 pr-7 text-xs text-fg-dim hover:text-fg focus:border-brand-teal focus:outline-none"
+        className="w-full cursor-pointer appearance-none rounded-full border border-transparent bg-ink-700 py-2 pl-3 pr-7 text-xs text-fg-dim hover:text-fg focus:border-brand-teal focus:outline-none sm:w-auto sm:py-1.5"
         title={label}
       >
         {options.map((o) => (
@@ -618,25 +618,32 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
   const live = o.overlap_id === undefined
   return (
     <div className="animate-in flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between border-b border-ink-500 px-5 py-3">
-        <button type="button" onClick={onBack} className="flex items-center gap-1.5 text-[12.5px] text-fg-dim hover:text-fg">
+      <div className="flex items-center justify-between border-b border-ink-500 px-6 py-3">
+        <button type="button" onClick={onBack} className="flex items-center gap-1.5 text-[13px] text-fg-dim hover:text-fg">
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Ranked list
         </button>
-        <button type="button" onClick={onBack} aria-label="Close detail" className="rounded-md p-1 text-fg-faint hover:text-fg">
+        <button type="button" onClick={onBack} aria-label="Close detail" className="rounded-full p-2 text-fg-faint hover:text-fg">
           <X className="h-4 w-4" />
         </button>
       </div>
-      <div className="scroll-thin flex-1 overflow-y-auto px-5 py-5">
+      <div className="scroll-thin flex-1 overflow-y-auto px-6 py-5">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-md bg-brand-pink-dim px-2.5 py-1 text-[11px] font-bold text-brand-pink">RANK {o.rank}</span>
+          <span className="rounded-full bg-brand-pink-dim px-2.5 py-1 text-[11px] font-semibold text-brand-pink">RANK {o.rank}</span>
           {live ? <Pill tone="purple">Live result</Pill> : <TierLabel tier={o.proximity_tier} />}
-          <span className="ml-auto text-[11px] font-bold text-fg-faint">Score {fmtNum(o.score, 2)}</span>
+          <span className="ml-auto text-[11px] font-semibold text-fg-faint">Score {fmtNum(o.score, 2)}</span>
         </div>
-        <h2 className="mb-5 text-lg font-bold leading-snug">
+        <h2 className="mb-4 text-lg font-bold leading-snug">
           {tidyName(o.a.name)} <span className="font-medium text-fg-faint">×</span> {tidyName(o.b.name)}
         </h2>
 
-        <div className="space-y-2.5">
+        {!live && (
+          <div className="mb-4 rounded-xl border border-brand-pink/70 bg-brand-pink-dim px-4 py-3">
+            <div className="mb-1 text-[13px] font-semibold">What could be shared</div>
+            <div className="text-[13px] text-fg/90">{o.shareable}</div>
+          </div>
+        )}
+
+        <div className="space-y-3">
           {[o.a, o.b].map((p) => (
             <div key={p.utility_id + p.project_id} className="rounded-xl border border-ink-500 bg-ink-700 px-4 py-3" style={{ borderLeft: `3px solid ${colors[p.utility_id]}` }}>
               <div className="eyebrow mb-1">
@@ -644,7 +651,7 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
                 {p.source_kind === 'user_submitted' && <span className="ml-1 text-[#B3AAF7]">· community</span>}
               </div>
               <div className="mb-2 text-[13px] font-semibold">{tidyName(p.name)}</div>
-              <div className="flex justify-between text-[11.5px] text-fg-faint">
+              <div className="flex flex-wrap justify-between gap-x-3 text-[12px] text-fg-dim">
                 <span>In service {fmtDate(p.in_service_date)}</span>
                 <span>Build {fmtWindow(p.build_window)}</span>
               </div>
@@ -652,19 +659,15 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
           ))}
         </div>
 
-        <div className="my-4 grid grid-cols-2 gap-2.5">
+        <div className="my-4 grid grid-cols-2 gap-3">
           <Fact value={`${fmtNum(o.center_distance_mi, 2)} mi`} label="Center distance" />
           <Fact value={fmtDistance(o.closest_distance_mi)} label="Closest points" />
-          <Fact value={o.in_service_gap_days === null ? '—' : fmtNum(o.in_service_gap_days)} label="Days between in-service" />
-          {live ? <Fact value="—" label="Confidence (stored list only)" /> : <Fact value={<ConfidenceBadge level={o.location_confidence} suffix={false} />} label="Location confidence" />}
+          <Fact value={o.in_service_gap_days === null ? '—' : fmtNum(o.in_service_gap_days)} label="In-service gap (days)" />
+          {live ? <Fact value="—" label="Location (stored list only)" /> : <Fact value={<ConfidenceBadge level={o.location_confidence} suffix={false} />} label="Location" />}
         </div>
 
         {!live && (
           <>
-            <div className="mb-3 rounded-xl border border-brand-pink/70 bg-brand-pink-dim px-4 py-3">
-              <div className="mb-1 text-[12.5px] font-bold">What could be shared</div>
-              <div className="text-[12.5px] text-fg/90">{o.shareable}</div>
-            </div>
             <div className="mb-4 flex flex-wrap gap-1.5">
               <Pill tone={o.build_windows_overlap ? 'teal' : 'default'}>
                 <CalendarCheck2 className="h-3 w-3" /> {o.build_windows_overlap ? 'Build windows overlap' : 'Build windows don’t overlap'}
@@ -682,7 +685,7 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
               )}
             </div>
             {o.shared_row_acres_upper_bound !== null && (
-              <div className="mb-4 rounded-xl border border-ink-500 bg-ink-700 px-4 py-3 text-[12.5px]">
+              <div className="mb-4 rounded-xl border border-ink-500 bg-ink-700 px-4 py-3 text-[13px]">
                 <div className="eyebrow mb-1 text-fg-faint">Shared right-of-way (upper bound)</div>
                 <b className="font-display text-base">{fmtNum(o.shared_row_acres_upper_bound, 1)} acres</b>
                 {o.shared_row_value_usd !== null && <span className="ml-2 text-brand-teal">≈ {fmtUsd(o.shared_row_value_usd)}</span>}
@@ -690,9 +693,9 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
             )}
           </>
         )}
-        <p className="text-[11.5px] text-fg-faint">{fmtGap(o.in_service_gap_days)} between in-service dates.</p>
+        <p className="text-[12px] text-fg-dim">{fmtGap(o.in_service_gap_days)} between in-service dates.</p>
       </div>
-      <div className="flex gap-2 border-t border-ink-500 bg-ink-700 px-5 py-4">
+      <div className="flex flex-col gap-2 border-t border-ink-500 bg-ink-700 px-6 py-4 sm:flex-row">
         {orbiting ? (
           <button type="button" className="btn-ghost flex-1" onClick={onStop}>
             <Square className="h-3.5 w-3.5" /> Stop orbit
@@ -703,7 +706,7 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
           </button>
         )}
         {live ? (
-          <span className="btn-ghost flex-1 cursor-default text-center text-[11.5px]" title="Live results aren't stored, so they have no detail page">
+          <span className="btn-ghost flex-1 cursor-default text-center text-[12px]" title="Live results aren't stored, so they have no detail page">
             Live: no detail page
           </span>
         ) : (
@@ -718,9 +721,9 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
 
 function Fact({ value, label }) {
   return (
-    <div className="rounded-xl bg-ink-700 px-3 py-2.5 text-center">
-      <div className="font-display text-[17px] font-bold">{value}</div>
-      <div className="mt-0.5 text-[10.5px] text-fg-faint">{label}</div>
+    <div className="rounded-xl bg-ink-700 px-3 py-3 text-center">
+      <div className="font-display text-xl font-bold">{value}</div>
+      <div className="mt-1 text-[11px] text-fg-dim">{label}</div>
     </div>
   )
 }

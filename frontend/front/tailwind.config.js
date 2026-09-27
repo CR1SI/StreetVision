@@ -7,7 +7,7 @@ export default {
         // StreetVision palette (from the Sperry Tech brand colors): navy base, purple/teal, pink accent
         ink: { DEFAULT: '#0A0F1C', 900: '#0A0F1C', 800: '#111A2C', 700: '#17223A', 600: '#1E2A46', 500: '#26314C' },
         map: '#171717',
-        fg: { DEFAULT: '#F3F5FA', dim: '#8C96AD', faint: '#5C6784' },
+        fg: { DEFAULT: '#F3F5FA', dim: '#8C96AD', faint: '#7A86A0' }, // faint raised for readable contrast
         brand: {
           purple: '#7C6FEF', 'purple-dim': '#2A2560',
           teal: '#2FD1C0', 'teal-dim': '#123B37',
@@ -17,8 +17,9 @@ export default {
         },
       },
       fontFamily: {
-        display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // One family for everything: IBM Plex Sans (built for engineering tools; clear at small sizes).
+        display: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
     },
   },

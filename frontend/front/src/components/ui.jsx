@@ -15,7 +15,7 @@ export function ConfidenceBadge({ level, suffix = true, className = '' }) {
   const c = CONFIDENCE[level] ?? CONFIDENCE.none
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10.5px] font-bold ${className}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${className}`}
       style={{ background: c.bg, color: c.fg }}
       title="How sure we are of the project's location"
     >
@@ -27,7 +27,7 @@ export function ConfidenceBadge({ level, suffix = true, className = '' }) {
 
 export function TierLabel({ tier, className = '' }) {
   return (
-    <span className={`eyebrow ${className}`} style={{ color: tierColor(tier) }}>
+    <span className={`text-[12px] font-semibold ${className}`} style={{ color: tierColor(tier) }}>
       {tierLabel(tier)}
     </span>
   )
@@ -35,7 +35,7 @@ export function TierLabel({ tier, className = '' }) {
 
 export function UtilityTag({ id, colors, className = '' }) {
   return (
-    <span className={`font-bold ${className}`} style={{ color: colors?.[id] ?? '#8C96AD' }}>
+    <span className={`font-semibold ${className}`} style={{ color: colors?.[id] ?? '#8C96AD' }}>
       {id}
     </span>
   )
@@ -50,7 +50,7 @@ export function Pill({ children, tone = 'default', title, className = '' }) {
     purple: 'bg-brand-purple-dim text-[#B3AAF7]',
   }
   return (
-    <span title={title} className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10.5px] font-bold ${tones[tone]} ${className}`}>
+    <span title={title} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${tones[tone]} ${className}`}>
       {children}
     </span>
   )
@@ -68,7 +68,7 @@ export function Spinner({ label = 'Loading…', className = '' }) {
 export function ErrorState({ error, onRetry, className = '' }) {
   return (
     <div role="alert" className={`card flex flex-col items-start gap-3 border-brand-pink/60 p-5 ${className}`}>
-      <div className="flex items-center gap-2 text-sm font-bold text-brand-pink">
+      <div className="flex items-center gap-2 text-[13px] font-semibold text-brand-pink">
         <AlertTriangle className="h-4 w-4" aria-hidden="true" />
         {error?.status === 404 ? 'Not found' : 'Something went wrong'}
       </div>
