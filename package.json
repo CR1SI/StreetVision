@@ -1,0 +1,13 @@
+{
+  "name": "streetvision-workspace",
+  "private": true,
+  "workspaces": [
+    "frontend/front"
+  ],
+  "scripts": {
+    "dev": "npm --workspace frontend/front run dev",
+    "start": "npm --workspace frontend/front run dev",
+    "build": "npm --workspace frontend/front run build",
+    "preview": "npm --workspace frontend/front run preview"
+  }
+}

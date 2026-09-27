@@ -384,8 +384,8 @@ class ApiHandler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8001))
-    server = HTTPServer(("127.0.0.1", port), ApiHandler)
-    print(f"StreetVision API & web server running on http://127.0.0.1:{port}/")
+    server = HTTPServer(("0.0.0.0", port), ApiHandler)
+    print(f"StreetVision mock API running on http://127.0.0.1:{port}/ (bound to 0.0.0.0)")
     sys.stdout.flush()
     try:
         server.serve_forever()
