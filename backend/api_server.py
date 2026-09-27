@@ -382,12 +382,64 @@ class ApiHandler(BaseHTTPRequestHandler):
         else:
             self.send_json({"detail": "Not found"}, 404)
 
+class ReusableHTTPServer(HTTPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
+def free_port(port: int):
+    """Automatically terminates any existing process holding the port so restarts always succeed."""
+    import signal
+    import subprocess
+    import time
+
+    if sys.platform == "win32":
+        try:
+            output = subprocess.check_output(f"netstat -ano | findstr :{port}", shell=True).decode()
+            for line in output.strip().splitlines():
+                parts = line.split()
+                if len(parts) >= 5 and "LISTENING" in parts:
+                    pid = int(parts[-1])
+                    if pid != os.getpid() and pid > 0:
+                        print(f"Stopping previous process on port {port} (PID {pid})...")
+                        subprocess.run(f"taskkill /F /PID {pid}", shell=True, capture_output=True)
+            time.sleep(0.3)
+        except Exception:
+            pass
+    else:
+        try:
+            out = subprocess.check_output(["lsof", "-ti", f":{port}"], stderr=subprocess.DEVNULL).decode().strip()
+            for pid_str in out.split():
+                pid = int(pid_str)
+                if pid != os.getpid():
+                    print(f"Stopping previous process on port {port} (PID {pid})...")
+                    try:
+                        os.kill(pid, signal.SIGKILL)
+                    except OSError:
+                        pass
+            time.sleep(0.3)
+        except Exception:
+            pass
+
+def create_server(host: str, port: int, max_retries: int = 2):
+    import time
+    for attempt in range(max_retries + 1):
+        try:
+            return ReusableHTTPServer((host, port), ApiHandler)
+        except OSError as e:
+            if e.errno in (48, 98, 10048) and attempt < max_retries:
+                print(f"Port {port} in use. Automatically freeing it...")
+                free_port(port)
+                time.sleep(0.5)
+            else:
+                raise
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8001))
-    server = HTTPServer(("0.0.0.0", port), ApiHandler)
+    server = create_server("0.0.0.0", port)
     print(f"StreetVision mock API running on http://127.0.0.1:{port}/ (bound to 0.0.0.0)")
     sys.stdout.flush()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
+

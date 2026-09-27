@@ -23,3 +23,8 @@ ehthumbs.db
 # Scraper raw caches
 data/raw/osm_substations.json
 backend/data/raw/osm_substations.json
+AGENTS.md
+GEMINI.md
+.vscode/settings.json
+backend/api_server.py
+frontend/front/vite.config.js
