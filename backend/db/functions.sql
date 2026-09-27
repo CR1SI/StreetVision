@@ -4,9 +4,12 @@
 -- so there is exactly one implementation.
 --   center distance : spherical great-circle between centers (matches haversine)
 --   overlap         : center distance < p_max_mi (25 mi for the stored table)
---   closest distance: between actual geometries, geography meters (works anywhere, no UTM zone)
+--   closest distance: between actual geometries, in miles (works anywhere, no UTM zone)
+--   shared ROW      : length the two lines run within 150 m of each other x 100 ft corridor
 --   score           : 0.7 * (1 - dist / p_max_mi) + 0.3 * (1 - min(gap_days, 1095) / 1095)
 -- p_only_dataset limits the work to pairs touching one dataset (an incremental upload).
+-- Dropped first: CREATE OR REPLACE can't change the output columns (e.g. the km -> mi rename).
+DROP FUNCTION IF EXISTS find_overlaps(DOUBLE PRECISION, INTEGER);
 CREATE OR REPLACE FUNCTION find_overlaps(p_max_mi DOUBLE PRECISION, p_only_dataset INTEGER DEFAULT NULL)
 RETURNS TABLE (
     utility_a TEXT, project_id_a TEXT, utility_b TEXT, project_id_b TEXT,
@@ -30,11 +33,7 @@ LANGUAGE sql STABLE AS $$
            a.is_override OR b.is_override,
            round((0.7 * (1 - m.center_mi / p_max_mi)
                 + 0.3 * (1 - LEAST(COALESCE(m.gap, 1095), 1095) / 1095.0))::numeric, 4)::float,
-           CASE WHEN GeometryType(a.geom) IN ('LINESTRING', 'MULTILINESTRING')
-                 AND GeometryType(b.geom) IN ('LINESTRING', 'MULTILINESTRING')
-                 AND m.closest_mi <= 1.0
-                THEN round((LEAST(ST_Length(a.geom::geography), ST_Length(b.geom::geography))
-                            * 3.28084 * 100 / 43560)::numeric, 1)::float END,   -- shorter line x 100 ft corridor
+           r.shared_acres,
            ST_MakeLine(a.center, b.center)
     FROM projects a
     JOIN projects b
@@ -45,6 +44,19 @@ LANGUAGE sql STABLE AS $$
                ST_Distance(a.geom::geography, b.geom::geography, false) / 1609.344   AS closest_mi,
                abs(a.in_service_date - b.in_service_date)                           AS gap
     ) m
+    CROSS JOIN LATERAL (
+        -- Shared right-of-way: only the stretch where the two lines actually run side by side
+        -- (each line's length within 150 m of the other; the smaller of the two), times a
+        -- 100 ft corridor. Two lines that merely meet at a substation share a few acres, not the
+        -- whole shorter line. Computed only for line pairs whose geometries come within 1 mile.
+        SELECT CASE WHEN GeometryType(a.geom) IN ('LINESTRING', 'MULTILINESTRING')
+                     AND GeometryType(b.geom) IN ('LINESTRING', 'MULTILINESTRING')
+                     AND m.closest_mi <= 1.0
+                    THEN round((LEAST(
+                            ST_Length(ST_Intersection(a.geom::geography, ST_Buffer(b.geom::geography, 150))),
+                            ST_Length(ST_Intersection(b.geom::geography, ST_Buffer(a.geom::geography, 150))))
+                         * 3.28084 * 100 / 43560)::numeric, 1)::float END AS shared_acres
+    ) r
     WHERE m.center_mi < p_max_mi
       AND (p_only_dataset IS NULL OR a.dataset_id = p_only_dataset OR b.dataset_id = p_only_dataset)
 $$;

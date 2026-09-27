@@ -170,7 +170,7 @@ if __name__ == "__main__":
     key = ["utility", "region", "name"]
     if os.path.exists(OUT):  # keep manual review from earlier runs
         old = pd.read_csv(OUT, dtype=str)
-        reviewed = old[old["confirmed"].fillna("").str.lower().isin(["yes", "no", "manual"])]
+        reviewed = old[old["confirmed"].fillna("").str.lower().isin(["yes", "no", "manual", "guess"])]
         fresh = ~sheet.set_index(key).index.isin(reviewed.set_index(key).index)
         sheet = pd.concat([reviewed, sheet[fresh]], ignore_index=True)
 

@@ -45,7 +45,7 @@ def merged():
     if not BASELINE_PDF.exists():
         pytest.skip("put the 2024-2028 DESC PDF in data/raw/ to run the edition-merge tests")
     base = parse_text(pdf_text(str(BASELINE_PDF)))
-    return merge_editions(base, [parse_text((FIXTURES / "desc_2026_2030_excerpt.txt").read_text())])
+    return merge_editions(base, [parse_text((FIXTURES / "desc_2026_2030_excerpt.txt").read_text(encoding="utf-8"))])
 
 
 def test_updated_dates_are_added_not_overwritten():
