@@ -13,7 +13,7 @@ const LINKS = [
 export function Nav({ active }) {
   const [open, setOpen] = useState(false)
   return (
-    <header className="relative z-40 shrink-0 border-b border-white/[0.06] bg-[#0B1120]/80 backdrop-blur-xl">
+    <header className="relative z-40 shrink-0 border-b border-ink-500 bg-ink-800">
       <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-8">
         <a href="/" className="flex items-center gap-3" aria-label="StreetVision home">
           <Logo />
@@ -36,15 +36,15 @@ export function Nav({ active }) {
             </a>
           ))}
           </div>
-          <span className="flex items-center gap-1.5 rounded-full border border-white/[0.07] bg-white/[0.04] px-3 py-1.5" title="Every page is public. No accounts, no sign-in.">
-            <ShieldCheck className="h-3.5 w-3.5 text-brand-teal" aria-hidden="true" />
+          <span className="flex items-center gap-1.5 border border-ink-500 bg-ink-700 px-3 py-1.5" title="Every page is public. No accounts, no sign-in.">
+            <ShieldCheck className="h-3.5 w-3.5 text-brand-accent" aria-hidden="true" />
             <span className="text-[11px] text-fg-dim">Public data · no login</span>
           </span>
         </nav>
 
         <button
           type="button"
-          className="rounded-lg p-2 text-fg-dim hover:bg-ink-700 md:hidden"
+          className="p-2 text-fg-dim hover:bg-ink-600 md:hidden"
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
@@ -53,13 +53,13 @@ export function Nav({ active }) {
         </button>
       </div>
       {open && (
-        <nav aria-label="Main" className="flex flex-col gap-1 border-t border-white/[0.06] px-4 py-3 md:hidden">
+        <nav aria-label="Main" className="flex flex-col gap-1 border-t border-ink-500 px-4 py-3 md:hidden">
           {LINKS.map((l) => (
             <a
               key={l.key}
               href={l.href}
               aria-current={active === l.key ? 'page' : undefined}
-              className={`rounded-xl px-3 py-2.5 text-[13px] ${active === l.key ? 'bg-white/[0.08] font-semibold text-fg' : 'text-fg-dim'}`}
+              className={`px-3 py-2.5 text-[13px] ${active === l.key ? 'bg-ink-600 font-semibold text-fg' : 'text-fg-dim'}`}
             >
               {l.label}
             </a>
@@ -77,7 +77,7 @@ export function Layout({ active, fill = false, children }) {
       <Nav active={active} />
       <main className={fill ? 'relative flex min-h-0 flex-1' : 'flex-1'}>{children}</main>
       {!fill && (
-        <footer className="border-t border-white/[0.06] px-4 py-6 text-center text-[12px] text-fg-faint sm:px-8">
+        <footer className="border-t border-ink-500 px-4 py-6 text-center text-[12px] text-fg-faint sm:px-8">
           StreetVision · Built for the Sperry Tech ShellHacks 2026 “Gridlock” Challenge · Public filings only, no CEII
         </footer>
       )}

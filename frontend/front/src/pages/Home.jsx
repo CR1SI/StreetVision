@@ -286,12 +286,12 @@ export default function Home() {
       }
       // Empty map: what's near here? (PostGIS ST_DWithin lookup)
       const seq = ++clickSeq
-      popup.setLngLat(e.lngLat).setHTML('<div style="color:#8C96AD">Looking for nearby projects…</div>').addTo(map)
+      popup.setLngLat(e.lngLat).setHTML('<div style="color:#9198A3">Looking for nearby projects…</div>').addTo(map)
       try {
         const res = await api.near({ lat: e.lngLat.lat, lon: e.lngLat.lng, radius_mi: NEAR_RADIUS })
         if (seq === clickSeq && popup.isOpen()) popup.setHTML(nearPopup(e.lngLat, res, NEAR_RADIUS))
       } catch (err) {
-        if (seq === clickSeq && popup.isOpen()) popup.setHTML(`<div style="color:#F0397E">${esc(err.message)}</div>`)
+        if (seq === clickSeq && popup.isOpen()) popup.setHTML(`<div style="color:#DC5B5B">${esc(err.message)}</div>`)
       }
     }
 
@@ -321,7 +321,7 @@ export default function Home() {
 
           {(!isLoaded || projects.loading) && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-              <Spinner className="rounded-full bg-ink-800/90 px-4 py-2" label={isLoaded ? 'Loading projects…' : 'Loading map…'} />
+              <Spinner className="bg-ink-800 px-4 py-2" label={isLoaded ? 'Loading projects…' : 'Loading map…'} />
             </div>
           )}
 
@@ -342,18 +342,18 @@ export default function Home() {
                       className="chip border"
                       style={on ? { background: `${c}26`, borderColor: c, color: PALETTE.text } : { borderColor: PALETTE.border, color: PALETTE.faint }}
                     >
-                      <span className="h-2 w-2 rounded-full" style={{ background: on ? c : PALETTE.faint }} />
+                      <span className="h-2 w-2" style={{ background: on ? c : PALETTE.faint }} />
                       {u.utility_id}
                     </button>
                   )
                 })}
-                {utils.loading && <Skeleton className="h-7 w-28 rounded-full" />}
-                <a href="/contribute/" className="chip border border-dashed border-white/[0.07] text-fg-faint hover:text-fg-dim" title="Add another utility's planned projects">
+                {utils.loading && <Skeleton className="h-7 w-28" />}
+                <a href="/contribute/" className="chip border border-dashed border-ink-500 text-fg-faint hover:text-fg-dim" title="Add another utility's planned projects">
                   <Plus className="h-3.5 w-3.5" aria-hidden="true" /> Add utility
                 </a>
                 <button
                   type="button"
-                  className="chip ml-auto text-fg-dim hover:text-fg"
+                  className="chip ml-auto border-ink-500 text-fg-dim hover:text-fg"
                   onClick={() => setFiltersOpen((o) => !o)}
                   aria-expanded={filtersOpen}
                 >
@@ -363,7 +363,7 @@ export default function Home() {
               </div>
 
               {filtersOpen && (
-                <div className="grid grid-cols-2 items-center gap-2 border-t border-white/[0.07] pt-2.5 sm:flex sm:flex-wrap">
+                <div className="grid grid-cols-2 items-center gap-2 border-t border-ink-500 pt-2.5 sm:flex sm:flex-wrap">
                   <Select label="Source" value={filters.source} onChange={(v) => update({ source: v })} options={SOURCE_OPTIONS} />
                   <Select
                     label="Location confidence"
@@ -379,7 +379,7 @@ export default function Home() {
                     options={[{ v: '', l: 'All tiers' }, ...TIERS.map((t) => ({ v: t.key, l: t.label }))]}
                     disabled={live}
                   />
-                  <label className="flex cursor-pointer items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5 text-xs text-fg-dim">
+                  <label className="flex cursor-pointer items-center gap-2 border border-ink-500 bg-ink-700 px-3 py-1.5 text-xs text-fg-dim">
                     <input
                       type="checkbox"
                       className="peer sr-only"
@@ -387,11 +387,11 @@ export default function Home() {
                       onChange={(e) => update({ hideInService: e.target.checked })}
                     />
                     Hide in-service
-                    <span className="relative h-4 w-7 rounded-full bg-ink-500 transition-colors peer-checked:bg-brand-teal peer-focus-visible:ring-2 peer-focus-visible:ring-brand-teal">
-                      <span className={`absolute top-0.5 h-3 w-3 rounded-full bg-fg transition-all ${filters.hideInService ? 'left-3.5' : 'left-0.5'}`} />
+                    <span className="relative h-4 w-7 bg-ink-500 transition-colors peer-checked:bg-brand-accent peer-focus-visible:ring-2 peer-focus-visible:ring-brand-accent">
+                      <span className={`absolute top-0.5 h-3 w-3 bg-fg transition-all ${filters.hideInService ? 'left-3.5' : 'left-0.5'}`} />
                     </span>
                   </label>
-                  <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5">
+                  <div className="flex items-center gap-2 border border-ink-500 bg-ink-700 px-3 py-1.5">
                     <label htmlFor="radius" className="whitespace-nowrap text-xs text-fg-dim">
                       Radius <b className="text-fg">{radiusDraft} mi</b>
                     </label>
@@ -402,12 +402,12 @@ export default function Home() {
                       max="100"
                       value={radiusDraft}
                       onChange={(e) => setRadiusDraft(Number(e.target.value))}
-                      className="w-24 accent-brand-pink"
+                      className="w-24 accent-brand-accent"
                       aria-describedby="radius-hint"
                     />
                   </div>
                   {activeFilterCount > 0 && (
-                    <button type="button" onClick={resetFilters} className="chip text-fg-faint hover:text-fg">
+                    <button type="button" onClick={resetFilters} className="chip border-ink-500 text-fg-faint hover:text-fg">
                       <RotateCcw className="h-3 w-3" aria-hidden="true" /> Reset
                     </button>
                   )}
@@ -422,7 +422,7 @@ export default function Home() {
           </div>
 
           {/* Right-side map tools (under the zoom control) */}
-          <div className="absolute right-[10px] top-[118px] z-20 flex flex-col overflow-hidden rounded-[10px] border border-ink-500 bg-ink-800/95 shadow-xl">
+          <div className="absolute right-[10px] top-[118px] z-20 flex flex-col overflow-hidden border border-ink-500 bg-ink-800">
             <MapTool
               label={threeD ? 'Switch to flat map' : modelState === 'error' ? '3D models could not load' : 'Show 3D models'}
               onClick={() => setThreeD((v) => !v)}
@@ -439,7 +439,7 @@ export default function Home() {
           <Legend colors={utils.colors} list={utils.list} threeD={threeD} />
 
           {!online && isLoaded && (
-            <div className="absolute bottom-3 right-3 z-20 flex items-center gap-2 rounded-lg border border-ink-500 bg-ink-800/95 px-3 py-2 text-[11px] text-fg-dim sm:bottom-10">
+            <div className="absolute bottom-3 right-3 z-20 flex items-center gap-2 border border-ink-500 bg-ink-800 px-3 py-2 text-[11px] text-fg-dim sm:bottom-10">
               <WifiOff className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <span className="hidden sm:inline">Street basemap unavailable: showing projects on a plain canvas</span>
               <span className="sm:hidden">Basemap offline</span>
@@ -449,9 +449,9 @@ export default function Home() {
             <button
               type="button"
               onClick={stopOrbit}
-              className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-full border border-brand-pink/60 bg-ink-800/95 px-4 py-2 text-xs font-bold text-fg shadow-xl"
+              className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 border border-brand-accent/60 bg-ink-800 px-4 py-2 text-xs font-bold text-fg"
             >
-              <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-brand-pink" />
+              <span className="mr-2 inline-block h-2 w-2 animate-pulse bg-brand-accent" />
               Orbiting · click to stop
             </button>
           )}
@@ -466,22 +466,22 @@ export default function Home() {
             <OverlapPanel o={selected} colors={utils.colors} orbiting={orbiting} onBack={() => select(null)} onOrbit={() => select(selected)} onStop={stopOrbit} />
           ) : (
             <>
-              <div className="border-b border-white/[0.06] px-5 pb-4 pt-5">
+              <div className="border-b border-ink-500 px-5 pb-4 pt-5">
                 <div className="mb-1 flex items-center justify-between">
                   <h1 className="text-lg font-bold">Ranked opportunities</h1>
-                  <span className="rounded-full bg-white/[0.07] px-2.5 py-0.5 text-[12px] font-semibold text-fg">{overlaps.loading ? '…' : list.length}</span>
+                  <span className="border border-ink-500 bg-ink-700 px-2.5 py-0.5 text-[12px] font-semibold text-fg">{overlaps.loading ? '…' : list.length}</span>
                 </div>
                 <p className="text-xs text-fg-dim">
                   {filters.utilities.length ? filters.utilities.join(' × ') : 'All utilities'} · within {filters.radius} mi
                   {projectCount !== undefined && ` · ${projectCount} projects mapped`}
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-2.5">
-                  <div className="tile-pink px-3.5 py-3">
-                    <div className="text-[11px] font-semibold opacity-70">Touching or crossing</div>
+                  <div className="border border-ink-500 bg-ink-700 px-3.5 py-3">
+                    <div className="text-[11px] font-semibold text-fg-faint">Touching or crossing</div>
                     <div className="text-xl font-bold">{overlaps.loading && !overlaps.data ? '…' : list.filter((o) => o.proximity_tier === 'touching/crossing').length}</div>
                   </div>
-                  <div className="tile-blue px-3.5 py-3">
-                    <div className="text-[11px] font-semibold opacity-70">Built at the same time</div>
+                  <div className="border border-ink-500 bg-ink-700 px-3.5 py-3">
+                    <div className="text-[11px] font-semibold text-fg-faint">Built at the same time</div>
                     <div className="text-xl font-bold">{overlaps.loading && !overlaps.data ? '…' : list.filter((o) => o.build_windows_overlap).length}</div>
                   </div>
                 </div>
@@ -530,7 +530,7 @@ function Select({ label, value, onChange, options, disabled }) {
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full cursor-pointer appearance-none rounded-full border border-transparent bg-white/[0.04] py-2 pl-3 pr-7 text-xs text-fg-dim hover:text-fg focus:border-brand-teal focus:outline-none sm:w-auto sm:py-1.5"
+        className="w-full cursor-pointer appearance-none border border-ink-500 bg-ink-700 py-2 pl-3 pr-7 text-xs text-fg-dim hover:text-fg focus:border-brand-accent focus:outline-none sm:w-auto sm:py-1.5"
         title={label}
       >
         {options.map((o) => (
@@ -554,7 +554,7 @@ function MapTool({ label, onClick, active, children }) {
       aria-label={label}
       title={label}
       aria-pressed={active}
-      className={`flex h-[34px] w-[34px] items-center justify-center border-b border-ink-500 last:border-b-0 hover:bg-ink-600 ${active ? 'text-brand-teal' : 'text-fg-dim'}`}
+      className={`flex h-[34px] w-[34px] items-center justify-center border-b border-ink-500 last:border-b-0 hover:bg-ink-600 ${active ? 'text-brand-accent' : 'text-fg-dim'}`}
     >
       {children}
     </button>
@@ -565,7 +565,7 @@ function Legend({ colors, list, threeD }) {
   const [open, setOpen] = useState(true)
   return (
     <div className="absolute bottom-3 left-3 z-20 hidden w-[220px] sm:bottom-4 sm:left-4 sm:block">
-      <div className="card bg-ink-800/95 px-4 py-3 shadow-2xl backdrop-blur">
+      <div className="card bg-ink-800 px-4 py-3">
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="eyebrow flex w-full items-center justify-between text-fg-dim">
           Legend <span className="text-fg-faint">{open ? '–' : '+'}</span>
         </button>
@@ -574,7 +574,7 @@ function Legend({ colors, list, threeD }) {
             <div className="space-y-1.5">
               {list.map((u) => (
                 <div key={u.utility_id} className="flex items-center gap-2">
-                  <span className="h-[3px] w-4 rounded" style={{ background: colors[u.utility_id] }} />
+                  <span className="h-[3px] w-4" style={{ background: colors[u.utility_id] }} />
                   <span className="truncate">{u.name ?? u.utility_id}</span>
                 </div>
               ))}
@@ -583,14 +583,14 @@ function Legend({ colors, list, threeD }) {
               <div className="eyebrow text-fg-faint">Project type (badge)</div>
               {PROJECT_TYPES.filter((t) => t.key !== 'other').map((t) => (
                 <div key={t.key} className="flex items-center gap-2" title={t.hint}>
-                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-fg-dim text-ink-900">
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center bg-fg-dim text-ink-900">
                     <t.Icon className="h-2.5 w-2.5" strokeWidth={3} aria-hidden="true" />
                   </span>
                   {t.label}
                 </div>
               ))}
               <div className="flex items-center gap-2" title="Where a planned line starts or ends">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border-2 border-fg-dim">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center border-2 border-fg-dim">
                   <Zap className="h-2 w-2 text-fg-dim" strokeWidth={3} aria-hidden="true" />
                 </span>
                 Substation (line end)
@@ -600,7 +600,7 @@ function Legend({ colors, list, threeD }) {
               <div className="space-y-1 border-t border-ink-500 pt-2.5">
                 <div className="eyebrow text-fg-faint">3D models</div>
                 <div>Towers = line work along the route</div>
-                <div className="pl-2 text-fg-faint">orange band = rebuild · pink tip = new line</div>
+                <div className="pl-2 text-fg-faint">amber band = rebuild · accent tip = new line</div>
                 <div>Large transformer = substation work</div>
                 <div>Fenced yard = substation (line end)</div>
                 <div>Bigger yard = area package</div>
@@ -648,10 +648,10 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
   return (
     <div className="animate-in flex min-h-0 flex-1 flex-col">
       <div className="flex items-center justify-between px-5 pt-4">
-        <button type="button" onClick={onBack} className="btn-ghost rounded-full px-3 py-1.5 text-[12px]">
+        <button type="button" onClick={onBack} className="btn-ghost px-3 py-1.5 text-[12px]">
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> All overlaps
         </button>
-        <button type="button" onClick={onBack} aria-label="Close detail" className="rounded-full p-2 text-fg-faint hover:bg-white/[0.06] hover:text-fg">
+        <button type="button" onClick={onBack} aria-label="Close detail" className="p-2 text-fg-faint hover:bg-ink-600 hover:text-fg">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -661,11 +661,11 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
         <div className="tile p-4">
           <div className="mb-2 flex items-center justify-between gap-2">
             <span className="flex items-center gap-2">
-              <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[#8B7CF6] px-1.5 text-[12px] font-bold text-white">{o.rank}</span>
+              <span className="inline-flex h-7 min-w-7 items-center justify-center border border-brand-accent bg-brand-accent-dim px-1.5 text-[12px] font-bold text-brand-accent">{o.rank}</span>
               {live ? <Pill tone="purple">Live result</Pill> : <TierLabel tier={o.proximity_tier} />}
             </span>
             {!live && (
-              <a href={`/overlap/?id=${o.overlap_id}`} className="btn-primary rounded-full px-3 py-1.5 text-[12px]">
+              <a href={`/overlap/?id=${o.overlap_id}`} className="btn-primary px-3 py-1.5 text-[12px]">
                 Details <ExternalLink className="h-3 w-3" />
               </a>
             )}
@@ -673,7 +673,7 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
           <h2 className="text-[16px] font-bold leading-snug">
             {tidyName(o.a.name)} <span className="font-normal text-fg-faint">×</span> {tidyName(o.b.name)}
           </h2>
-          <div className="mt-3 grid grid-cols-3 gap-3 border-t border-white/[0.06] pt-3 text-[11px]">
+          <div className="mt-3 grid grid-cols-3 gap-3 border-t border-ink-500 pt-3 text-[11px]">
             {[o.a, o.b].map((p) => (
               <div key={p.utility_id + p.project_id} className="min-w-0">
                 <div className="text-fg-faint">
@@ -691,7 +691,7 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
 
         {!live && (
           <div className="tile flex items-start gap-3 p-4">
-            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.07]">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border border-ink-500 bg-ink-600">
               <Users className="h-3.5 w-3.5 text-fg" aria-hidden="true" />
             </span>
             <div>
@@ -703,15 +703,15 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
 
         {/* Headline numbers */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="tile-pink px-4 py-3.5">
-            <div className="text-[12px] font-semibold opacity-70">Distance</div>
-            <div className="text-2xl font-bold">{fmtNum(o.center_distance_mi, 2)} mi</div>
-            <div className="text-[11px] opacity-70">Closest points {fmtDistance(o.closest_distance_mi)}</div>
+          <div className="border border-ink-500 bg-ink-700 px-4 py-3.5">
+            <div className="text-[12px] font-semibold text-fg-faint">Distance</div>
+            <div className="text-2xl font-bold text-brand-accent">{fmtNum(o.center_distance_mi, 2)} mi</div>
+            <div className="text-[11px] text-fg-faint">Closest points {fmtDistance(o.closest_distance_mi)}</div>
           </div>
-          <div className="tile-blue px-4 py-3.5">
-            <div className="text-[12px] font-semibold opacity-70">In service apart</div>
+          <div className="border border-ink-500 bg-ink-700 px-4 py-3.5">
+            <div className="text-[12px] font-semibold text-fg-faint">In service apart</div>
             <div className="text-2xl font-bold">{gapMonths === null ? '—' : gapMonths < 1 ? `${o.in_service_gap_days} d` : `${gapMonths} mo`}</div>
-            <div className="text-[11px] opacity-70">{o.in_service_gap_days === null ? 'Dates unknown' : `${fmtNum(o.in_service_gap_days)} days`}</div>
+            <div className="text-[11px] text-fg-faint">{o.in_service_gap_days === null ? 'Dates unknown' : `${fmtNum(o.in_service_gap_days)} days`}</div>
           </div>
         </div>
 
@@ -725,18 +725,18 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
               </Pill>
             )}
           </div>
-          <ol className="relative ml-2 border-l border-white/[0.1]">
+          <ol className="relative ml-2 border-l border-ink-500">
             {events.map((e, i) =>
               e.kind === 'today' ? (
                 <li key={i} className="relative -ml-px mb-3 pl-5">
-                  <span className="absolute -left-[5px] top-1 h-2.5 w-2.5 rounded-full bg-[#8B7CF6] ring-4 ring-[#8B7CF6]/20" />
-                  <span className="rounded-full bg-[#8B7CF6]/20 px-2 py-0.5 text-[11px] font-semibold text-[#C9C2FB]">Today</span>
+                  <span className="absolute -left-[5px] top-1 h-2.5 w-2.5 bg-brand-accent" />
+                  <span className="bg-brand-accent-dim px-2 py-0.5 text-[11px] font-semibold text-brand-accent">Today</span>
                 </li>
               ) : (
                 <li key={i} className="relative mb-3 pl-5 last:mb-0">
                   <span
-                    className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 ${e.kind === 'done' ? 'bg-fg' : 'bg-transparent'}`}
-                    style={{ borderColor: colors[e.p.utility_id] ?? '#8C96AD' }}
+                    className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 border-2 ${e.kind === 'done' ? 'bg-fg' : 'bg-transparent'}`}
+                    style={{ borderColor: colors[e.p.utility_id] ?? '#9198A3' }}
                   />
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="text-[13px] font-semibold">
@@ -768,17 +768,17 @@ function OverlapPanel({ o, colors, orbiting, onBack, onOrbit, onStop }) {
         )}
 
         {!live && o.shared_row_acres_upper_bound !== null && (
-          <div className="tile-mint px-4 py-3.5">
-            <div className="text-[12px] font-semibold opacity-70">Shared right-of-way (upper bound)</div>
+          <div className="border border-ink-500 bg-ink-700 px-4 py-3.5">
+            <div className="text-[12px] font-semibold text-fg-faint">Shared right-of-way (upper bound)</div>
             <div className="text-xl font-bold">
               {fmtNum(o.shared_row_acres_upper_bound, 1)} acres
-              {o.shared_row_value_usd !== null && <span className="ml-2 text-[13px] font-semibold opacity-80">≈ {fmtUsd(o.shared_row_value_usd)}</span>}
+              {o.shared_row_value_usd !== null && <span className="ml-2 text-[13px] font-semibold text-brand-accent">≈ {fmtUsd(o.shared_row_value_usd)}</span>}
             </div>
           </div>
         )}
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-white/[0.06] px-5 py-4 sm:flex-row">
+      <div className="flex flex-col gap-2 border-t border-ink-500 px-5 py-4 sm:flex-row">
         {orbiting ? (
           <button type="button" className="btn-ghost flex-1" onClick={onStop}>
             <Square className="h-3.5 w-3.5" /> Stop orbit

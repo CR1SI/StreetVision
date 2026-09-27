@@ -75,14 +75,14 @@ export default function Check() {
     const ring = point ? circle(point.center, radius) : { type: 'FeatureCollection', features: [] }
     setSource(map, 'search-radius', ring)
     if (!map.getLayer('search-radius-fill')) {
-      map.addLayer({ id: 'search-radius-fill', type: 'fill', source: 'search-radius', paint: { 'fill-color': PALETTE.pink, 'fill-opacity': 0.06 } }, map.getLayer('project-lines-glow') ? 'project-lines-glow' : undefined)
-      map.addLayer({ id: 'search-radius-line', type: 'line', source: 'search-radius', paint: { 'line-color': PALETTE.pink, 'line-width': 1.5, 'line-dasharray': [2, 3] } })
+      map.addLayer({ id: 'search-radius-fill', type: 'fill', source: 'search-radius', paint: { 'fill-color': PALETTE.accent, 'fill-opacity': 0.06 } }, map.getLayer('project-lines-glow') ? 'project-lines-glow' : undefined)
+      map.addLayer({ id: 'search-radius-line', type: 'line', source: 'search-radius', paint: { 'line-color': PALETTE.accent, 'line-width': 1.5, 'line-dasharray': [2, 3] } })
     }
     markerRef.current?.remove()
     markerRef.current = null
     if (point) {
       const el = document.createElement('div')
-      el.className = 'h-5 w-5 rounded-full border-[3px] border-white bg-brand-pink shadow-[0_0_0_6px_rgba(240,57,126,0.25)]'
+      el.className = 'h-5 w-5 border-[3px] border-white bg-brand-accent shadow-[0_0_0_6px_rgba(59,130,246,0.25)]'
       el.setAttribute('aria-label', 'Search point')
       markerRef.current = new maplibregl.Marker({ element: el }).setLngLat(point.center).addTo(map)
     }
@@ -138,7 +138,7 @@ export default function Check() {
 
           <form onSubmit={run} className="absolute left-4 top-4 z-20 w-[min(560px,calc(100%-5rem))] sm:top-6 lg:left-6 lg:w-[min(560px,calc(100%-420px-9rem))]" role="search">
             <div className="flex gap-2">
-              <label className="glass flex flex-1 items-center gap-2.5 rounded-2xl px-4 py-3 focus-within:border-[#8B7CF6]">
+              <label className="glass flex flex-1 items-center gap-2.5 px-4 py-3 focus-within:border-brand-accent">
                 <Search className="h-4 w-4 shrink-0 text-fg-faint" aria-hidden="true" />
                 <span className="sr-only">Address, city, ZIP, or lat, lon</span>
                 <input
@@ -148,7 +148,7 @@ export default function Check() {
                   className="w-full bg-transparent text-[13px] placeholder:text-fg-faint focus:outline-none"
                 />
               </label>
-              <button type="submit" className="btn-primary rounded-2xl px-5 shadow-2xl" disabled={geoBusy || !query.trim()}>
+              <button type="submit" className="btn-primary px-5" disabled={geoBusy || !query.trim()}>
                 {geoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Check'}
               </button>
             </div>
@@ -163,7 +163,7 @@ export default function Check() {
                     setQuery(ex.label)
                     setPoint(ex)
                   }}
-                  className="rounded-full border border-white/[0.08] bg-[#0D1322]/75 px-2.5 py-1 text-[11px] text-fg-dim backdrop-blur hover:text-fg"
+                  className="border border-ink-500 bg-ink-800 px-2.5 py-1 text-[11px] text-fg-dim hover:text-fg"
                 >
                   {ex.label}
                 </button>
@@ -173,7 +173,7 @@ export default function Check() {
               </span>
             </div>
             {geoError && (
-              <p role="alert" className="mt-2 rounded-xl border border-brand-pink/60 bg-ink-800/95 px-3 py-2 text-[12px] text-brand-pink">
+              <p role="alert" className="mt-2 border border-brand-danger/60 bg-ink-800 px-3 py-2 text-[12px] text-brand-danger">
                 {geoError}
               </p>
             )}
@@ -184,7 +184,7 @@ export default function Check() {
           className="glass scroll-thin m-3 flex min-h-0 flex-1 flex-col overflow-y-auto lg:absolute lg:bottom-14 lg:right-14 lg:top-4 lg:z-30 lg:m-0 lg:w-[420px]"
           aria-live="polite"
         >
-          <div className="border-b border-white/[0.06] px-6 py-5">
+          <div className="border-b border-ink-500 px-6 py-5">
             <h1 className="mb-1 text-lg font-bold">Check an address</h1>
             <p className="mb-4 text-[12px] text-fg-dim">Is this location inside a zone where two utilities plan work close together? And why?</p>
             <div className="flex items-center gap-3">
@@ -226,7 +226,7 @@ function Intro() {
   return (
     <div className="space-y-4 text-[13px] leading-relaxed text-fg-dim">
       <div className="flex items-start gap-3">
-        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#8B7CF6]" />
+        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-accent" />
         <p>Search an address or ZIP, pick an example, or click anywhere on the map.</p>
       </div>
       <details className="tile group px-4 py-3">
@@ -248,10 +248,10 @@ function Intro() {
 }
 
 const VERDICTS = {
-  zone: { icon: AlertTriangle, color: PALETTE.pink, bg: '#3E1330', title: 'Coordination zone', body: 'Planned projects from different utilities inside this radius have been flagged as a coordination opportunity.' },
-  edge: { icon: AlertTriangle, color: PALETTE.amber, bg: '#3F2E12', title: 'Near a coordination zone', body: 'Planned work here pairs with another utility’s project just outside this radius.' },
-  nearby: { icon: CheckCircle2, color: PALETTE.sky, bg: '#12304A', title: 'Planned work nearby, no overlap', body: 'There are planned projects here, but none pair with another utility’s project within 25 miles.' },
-  clear: { icon: CheckCircle2, color: PALETTE.teal, bg: '#123B37', title: 'No planned work found', body: 'No planned transmission projects in our data within this radius.' },
+  zone: { icon: AlertTriangle, color: PALETTE.danger, bg: '#2A1616', title: 'Coordination zone', body: 'Planned projects from different utilities inside this radius have been flagged as a coordination opportunity.' },
+  edge: { icon: AlertTriangle, color: PALETTE.warn, bg: '#2A2013', title: 'Near a coordination zone', body: 'Planned work here pairs with another utility’s project just outside this radius.' },
+  nearby: { icon: CheckCircle2, color: PALETTE.sky, bg: '#152230', title: 'Planned work nearby, no overlap', body: 'There are planned projects here, but none pair with another utility’s project within 25 miles.' },
+  clear: { icon: CheckCircle2, color: PALETTE.ok, bg: '#122520', title: 'No planned work found', body: 'No planned transmission projects in our data within this radius.' },
 }
 
 function Verdict({ v, point, radius, colors }) {
@@ -261,7 +261,7 @@ function Verdict({ v, point, radius, colors }) {
   return (
     <div className="animate-in space-y-5">
       <div className="flex items-start gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: meta.bg }}>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-ink-500" style={{ background: meta.bg }}>
           <Icon className="h-4 w-4" style={{ color: meta.color }} aria-hidden="true" />
         </span>
         <div>
@@ -285,9 +285,9 @@ function Verdict({ v, point, radius, colors }) {
               <b className="text-fg">{fmtNum(top.center_distance_mi, 2)} mi apart</b> (center to center), closest points {fmtDistance(top.closest_distance_mi)}: tier{' '}
               <TierLabel tier={top.proximity_tier} className="!text-[11px]" />. {top.shareable}.
             </Reason>
-            <Reason color={top.build_windows_overlap ? PALETTE.teal : PALETTE.faint}>
+            <Reason color={top.build_windows_overlap ? PALETTE.ok : PALETTE.faint}>
               <b className="text-fg">{fmtGap(top.in_service_gap_days)}</b> between in-service dates, and the build windows{' '}
-              {top.build_windows_overlap ? <b className="text-brand-teal">overlap</b> : 'don’t overlap'}.
+              {top.build_windows_overlap ? <b className="text-brand-ok">overlap</b> : 'don’t overlap'}.
             </Reason>
             <Reason color={PALETTE.faint}>
               Location confidence: <ConfidenceBadge level={top.location_confidence} suffix={false} />
@@ -304,7 +304,7 @@ function Verdict({ v, point, radius, colors }) {
           <h3 className="eyebrow mb-2.5 text-fg-faint">Flagged pairs ({v.matched.length})</h3>
           <div className="space-y-2">
             {v.matched.map((o) => (
-              <a key={o.overlap_id} href={`/overlap/?id=${o.overlap_id}`} className="block rounded-2xl bg-white/[0.04] px-4 py-3 transition-colors hover:bg-white/[0.07]">
+              <a key={o.overlap_id} href={`/overlap/?id=${o.overlap_id}`} className="block border border-ink-500 bg-ink-700 px-4 py-3 hover:bg-ink-600">
                 <div className="mb-1.5 flex items-center justify-between">
                   <TierLabel tier={o.proximity_tier} />
                   <span className="text-[11px] text-fg-faint">#{o.rank} · {fmtNum(o.center_distance_mi, 1)} mi</span>
@@ -339,7 +339,7 @@ function Verdict({ v, point, radius, colors }) {
       )}
 
       {v.lonely.length > 0 && (
-        <div className="border-t border-white/[0.07] pt-4">
+        <div className="border-t border-ink-500 pt-4">
           <h3 className="eyebrow mb-2.5 text-fg-faint">Also nearby, no flagged overlap</h3>
           <ul className="space-y-1.5">
             {v.lonely.slice(0, 8).map((n) => (
@@ -361,7 +361,7 @@ function Verdict({ v, point, radius, colors }) {
 function Reason({ color, children }) {
   return (
     <li className="flex gap-2.5">
-      <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: color }} />
+      <span className="mt-[7px] h-1.5 w-1.5 shrink-0" style={{ background: color }} />
       <span>{children}</span>
     </li>
   )

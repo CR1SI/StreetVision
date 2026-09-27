@@ -4,22 +4,35 @@ export default {
   theme: {
     extend: {
       colors: {
-        // StreetVision palette (from the Sperry Tech brand colors): navy base, purple/teal, pink accent
-        ink: { DEFAULT: '#0A0F1C', 900: '#0A0F1C', 800: '#111A2C', 700: '#17223A', 600: '#1E2A46', 500: '#26314C' },
-        map: '#171717',
-        fg: { DEFAULT: '#F3F5FA', dim: '#8C96AD', faint: '#7A86A0' }, // faint raised for readable contrast
+        // StreetVision palette v2: near-black base, one accent, no decorative pastels.
+        ink: { DEFAULT: '#0B0D10', 900: '#0B0D10', 800: '#111318', 700: '#15181D', 600: '#1B1F26', 500: '#2A2E35' },
+        map: '#141414',
+        fg: { DEFAULT: '#F2F3F5', dim: '#9198A3', faint: '#6B7280' },
         brand: {
-          purple: '#7C6FEF', 'purple-dim': '#2A2560',
-          teal: '#2FD1C0', 'teal-dim': '#123B37',
-          pink: '#F0397E', 'pink-dim': '#3E1330',
-          amber: '#FBBF63', 'amber-dim': '#3F2E12',
-          orange: '#FB8B3D', sky: '#5AC8FA',
+          // One accent color, used sparingly for primary actions / links / focus.
+          accent: '#3B82F6', 'accent-dim': '#152238',
+          // Semantic-only colors kept for things that must stay visually distinct
+          // (proximity tiers, confidence, error states) — muted, not candy-bright.
+          danger: '#DC5B5B', 'danger-dim': '#2A1616',
+          warn: '#C9963E', 'warn-dim': '#2A2013',
+          ok: '#3FA679', 'ok-dim': '#122520',
         },
       },
+      borderRadius: {
+        DEFAULT: '0px',
+        none: '0px',
+        sm: '0px',
+        md: '0px',
+        lg: '0px',
+        xl: '0px',
+        '2xl': '0px',
+        '3xl': '0px',
+        full: '2px', // "pill" shapes become a minimal 2px radius, not a stadium
+      },
       fontFamily: {
-        // One family for everything: IBM Plex Sans (built for engineering tools; clear at small sizes).
         display: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
     },
   },
